@@ -371,9 +371,13 @@
         .grade-input-title {
             font-size: 0.875rem;
             color: var(--muted-foreground);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        }
+
+        .grade-input-nature {
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            font-style: italic;
+            margin-top: 0.125rem;
         }
 
         .grade-input-coeff {
@@ -589,22 +593,31 @@
             S3: {
                 semester: 'S3',
                 courses: [
-                    { code: 'TBITR301', intitule: 'Anglais', coeff: 48, ues: ['UE31', 'UE32'] },
-                    { code: 'TBITR302', intitule: 'Culture et communication', coeff: 48, ues: ['UE31', 'UE32'] },
-                    { code: 'TBITR303', intitule: 'Vie de l\'entreprise', coeff: 16, ues: ['UE31', 'UE32'] },
-                    { code: 'TBITR304', intitule: 'Outils Mathématiques et Logiciels', coeff: 80, ues: ['UE31', 'UE32'] },
-                    { code: 'TBITR310', intitule: 'Physique appliquée', coeff: 48, ues: ['UE31', 'UE32'] },
-                    { code: 'TBITR305', intitule: 'Projet personnel et professionnel', coeff: 8, ues: ['UE31', 'UE32'] },
-                    { code: 'TBITR306', intitule: 'Automatique', coeff: 50, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITR307', intitule: 'Informatique Industrielle', coeff: 72, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITR308', intitule: 'Electronique (analogique)', coeff: 48, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITR309', intitule: 'Energie', coeff: 72, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITR311', intitule: 'Maintenance', coeff: 16, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITR312', intitule: 'Réseaux et cybersécurité', coeff: 32, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITR315', intitule: 'Supervision/Télégestion', coeff: 32, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITR3A1', intitule: 'Electronique (numérique)', coeff: 32, ues: ['UE33', 'UE34'] },
-                    { code: 'TBITE301', intitule: 'SAÉ LoRa et portfolio', coeff: 200, ues: ['UE31', 'UE32', 'UE33', 'UE34'] },
-                    { code: 'TBITE302', intitule: 'SAÉ Four', coeff: 200, ues: ['UE31', 'UE32', 'UE33', 'UE34'] }
+                    // UE31 - Ressources transversales 1
+                    { code: 'TBITR301', intitule: 'Anglais', coeff: 48, nature: 'DS (18) + Implication (10) + CO (10) + Oral (10)', ues: ['UE31'] },
+                    { code: 'TBITR302', intitule: 'Culture et communication', coeff: 48, nature: 'Note de lecture (12) + SynthèseDS (18) + Oral (18)', ues: ['UE31'] },
+                    { code: 'TBITR303', intitule: 'Vie de l\'entreprise', coeff: 16, nature: 'Séance (16)', ues: ['UE31'] },
+                    
+                    // UE32 - Ressources transversales 2
+                    { code: 'TBITR304', intitule: 'Outils Mathématiques et Logiciels', coeff: 72, nature: 'DS1 (30) + DS2 (30) + Séance (20)', ues: ['UE32'] },
+                    { code: 'TBITR305', intitule: 'Projet personnel et professionnel', coeff: 8, nature: 'CV sur internet (8)', ues: ['UE32'] },
+                    { code: 'TBITR310', intitule: 'Physique appliquée', coeff: 48, nature: 'DS1 (13) + DS2 (13) + Partiel TP (13) + séance (9)', ues: ['UE32'] },
+                    
+                    // UE33 - Ressources métiers 1
+                    { code: 'TBITR306', intitule: 'Automatique', coeff: 50, nature: 'DS (24) + TP (24)', ues: ['UE33'] },
+                    { code: 'TBITR307', intitule: 'Informatique Industrielle', coeff: 72, nature: 'DS(36) + Partiel TP(36)', ues: ['UE33'] },
+                    { code: 'TBITR308', intitule: 'Electronique (analogique)', coeff: 48, nature: 'DS(32) + TP (16)', ues: ['UE33'] },
+                    
+                    // UE34 - Ressources métiers 2
+                    { code: 'TBITR309', intitule: 'Energie', coeff: 72, nature: 'DS1 (18) + DS2 (18) + TP (18) + Quiz/WIMS (18)', ues: ['UE34'] },
+                    { code: 'TBITR311', intitule: 'Maintenance', coeff: 16, nature: 'DS (16)', ues: ['UE34'] },
+                    { code: 'TBITR312', intitule: 'Réseaux et cybersécurité', coeff: 34, nature: 'DS(12) + Partiel TP(12) + Séance TP/TD(8)', ues: ['UE34'] },
+                    { code: 'TBITR315', intitule: 'Supervision/Télégestion', coeff: 34, nature: 'DS(24) + TP(8)', ues: ['UE34'] },
+                    { code: 'TBITR3A1', intitule: 'Electronique (numérique)', coeff: 34, nature: 'DS(12) + Partiel TP(12) + Séance TP/TD (8)', ues: ['UE34'] },
+                    
+                    // SAÉ - Contribuent à toutes les UE
+                    { code: 'TBITE301', intitule: 'SAÉ LoRa et portfolio', coeff: 200, nature: 'SÉANCE (80) + RAPPORT(50) + PARTIEL TP(70)', ues: ['UE31', 'UE32', 'UE33', 'UE34'] },
+                    { code: 'TBITE302', intitule: 'SAÉ Four', coeff: 200, nature: 'SÉANCE(70) + EVAL(65) + DS(65)', ues: ['UE31', 'UE32', 'UE33', 'UE34'] }
                 ],
                 ues: [
                     { code: 'UE31', name: 'Ressources transversales 1', ects: 6 },
@@ -616,20 +629,30 @@
             S4: {
                 semester: 'S4',
                 courses: [
-                    { code: 'TBITR401', intitule: 'Anglais', coeff: 36, ues: ['UE41', 'UE42'] },
-                    { code: 'TBITR402', intitule: 'Culture et communication', coeff: 36, ues: ['UE41', 'UE42'] },
-                    { code: 'TBITR403', intitule: 'Vie de l\'entreprise', coeff: 28, ues: ['UE41', 'UE42'] },
-                    { code: 'TBITR404', intitule: 'Outils Mathématiques et Logiciels', coeff: 48, ues: ['UE41', 'UE42'] },
-                    { code: 'TBITR405', intitule: 'Projet personnel et professionnel', coeff: 12, ues: ['UE41', 'UE42'] },
-                    { code: 'TBITR4IA', intitule: 'Bases de l\'IA pour l\'IoT', coeff: 72, ues: ['UE43', 'UE44'] },
-                    { code: 'TBITM407', intitule: 'Energie spécialisée', coeff: 72, ues: ['UE43', 'UE44'] },
-                    { code: 'TBITR406', intitule: 'Automatique', coeff: 54, ues: ['UE43', 'UE44'] },
-                    { code: 'TBITR4A1', intitule: 'Automatisme spécialisé', coeff: 48, ues: ['UE43', 'UE44'] },
-                    { code: 'TBITR4A2', intitule: 'Electronique spécialisée', coeff: 48, ues: ['UE43', 'UE44'] },
-                    { code: 'TBITR4A3', intitule: 'Electronique (numérique)', coeff: 48, ues: ['UE43', 'UE44'] },
-                    { code: 'TBITM401', intitule: 'SAÉ Roue', coeff: 112, ues: ['UE41', 'UE42', 'UE43', 'UE44'] },
-                    { code: 'TBITM4ST', intitule: 'Stage', coeff: 264, ues: ['UE41', 'UE42', 'UE43', 'UE44'] },
-                    { code: 'TBITME4PF', intitule: 'Portfolio', coeff: 8, ues: ['UE41', 'UE42', 'UE43', 'UE44'] }
+                    // UE41 - Ressources transversales 1
+                    { code: 'TBITR401', intitule: 'Anglais', coeff: 36, nature: 'DS (18) + Débat (9) + CO (9)', ues: ['UE41'] },
+                    { code: 'TBITR402', intitule: 'Culture et communication', coeff: 36, nature: 'Présentation Orale (36)', ues: ['UE41'] },
+                    { code: 'TBITR403', intitule: 'Vie de l\'entreprise', coeff: 28, nature: 'DS (28)', ues: ['UE41'] },
+                    
+                    // UE42 - Ressources transversales 2
+                    { code: 'TBITR404', intitule: 'Outils Mathématiques et Logiciels', coeff: 48, nature: 'DS (36) + Note de séance (12)', ues: ['UE42'] },
+                    { code: 'TBITR405', intitule: 'Projet personnel et professionnel', coeff: 12, nature: 'Séance (12)', ues: ['UE42'] },
+                    
+                    // UE43 - Ressources métiers 1
+                    { code: 'TBITR4IA', intitule: 'Bases de l\'IA pour l\'IoT', coeff: 72, nature: 'DS (48) + Note de séance (24)', ues: ['UE43'] },
+                    { code: 'TBITR406', intitule: 'Automatique', coeff: 48, nature: 'DS(24) + TP(24)', ues: ['UE43'] },
+                    { code: 'TBITR4A1', intitule: 'Automatisme spécialisé', coeff: 48, nature: 'DS(24) + TP(24)', ues: ['UE43'] },
+                    
+                    // UE44 - Ressources métiers 2
+                    { code: 'TBITM407', intitule: 'Energie spécialisée', coeff: 72, nature: 'DS(30) + TP (21) + Quiz/WIMS (21)', ues: ['UE44'] },
+                    { code: 'TBITR4A2', intitule: 'Electronique spécialisée', coeff: 48, nature: 'DS(32) + TP (16)', ues: ['UE44'] },
+                    { code: 'TBITR4A3', intitule: 'Electronique (numérique)', coeff: 48, nature: 'Partiel (36) + Séance (12)', ues: ['UE44'] },
+                    
+                    // SAÉ, Stage et Portfolio - Contribuent à toutes les UE
+                    { code: 'TBITM401', intitule: 'SAÉ Roue', coeff: 112, nature: 'DS1 (40) + SÉANCE (40) + DOSSIER (32)', ues: ['UE41', 'UE42', 'UE43', 'UE44'] },
+                    { code: 'TBITM402', intitule: 'SAÉ Son', coeff: 112, nature: 'Séance (32) + Rapport(40) + Oral (40)', ues: ['UE41', 'UE42', 'UE43', 'UE44'] },
+                    { code: 'TBITME4PF', intitule: 'Portfolio', coeff: 16, nature: 'Séance (16)', ues: ['UE41', 'UE42', 'UE43', 'UE44'] },
+                    { code: 'TBITM4ST', intitule: 'Stage', coeff: 264, nature: 'Entreprise (90) + Soutenance orale (80) + Rapport(80) + Recherche de Stage (14)', ues: ['UE41', 'UE42', 'UE43', 'UE44'] }
                 ],
                 ues: [
                     { code: 'UE41', name: 'Ressources transversales 1', ects: 6 },
@@ -821,6 +844,7 @@
                         <div class="grade-input-info">
                             <div class="grade-input-code">${course.code}</div>
                             <div class="grade-input-title">${course.intitule}</div>
+                            <div class="grade-input-nature">${course.nature}</div>
                         </div>
                         <span class="badge badge-secondary grade-input-coeff">Coeff. ${course.coeff}</span>
                         <input 
