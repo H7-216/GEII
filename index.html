@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de Notes - BUT GEII TRAD - IUT Côte d'Azur</title>
+    <meta name="description" content="Application de calcul de notes pour le BUT GEII TRAD à l'IUT Côte d'Azur. Calculez vos moyennes de semestre, validez vos UE et suivez vos ECTS.">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(0, 0%, 9%);
+            --border: hsl(0, 0%, 91%);
+            --card: hsl(0, 0%, 98%);
+            --card-foreground: hsl(0, 0%, 9%);
+            --card-border: hsl(0, 0%, 94%);
+            --primary: hsl(217, 91%, 60%);
+            --primary-foreground: hsl(0, 0%, 98%);
+            --secondary: hsl(0, 0%, 90%);
+            --secondary-foreground: hsl(0, 0%, 9%);
+            --muted: hsl(0, 0%, 92%);
+            --muted-foreground: hsl(0, 0%, 40%);
+            --accent: hsl(217, 15%, 92%);
+            --accent-foreground: hsl(217, 15%, 15%);
+            --destructive: hsl(0, 84%, 50%);
+            --destructive-foreground: hsl(0, 0%, 98%);
+            --input: hsl(0, 0%, 80%);
+            --ring: hsl(217, 91%, 60%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--background);
+            color: var(--foreground);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border);
+            background-color: var(--card);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header .container {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h1 svg {
+            width: 1.75rem;
+            height: 1.75rem;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            margin-top: 0.25rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border-color: var(--border);
+            color: var(--foreground);
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            background-color: var(--accent);
+        }
+
+        .btn-ghost {
+            background-color: transparent;
+            border-color: transparent;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background-color: var(--accent);
+        }
+
+        .btn svg {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            margin: 2rem 0 1.5rem;
+        }
+
+        .tabs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-list {
+            display: inline-flex;
+            background-color: var(--muted);
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+        }
+
+        .tab-button {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--muted-foreground);
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            background-color: var(--background);
+            color: var(--foreground);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Progress */
+        .progress-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background-color: var(--secondary);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            margin-top: 0.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--primary);
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            margin-top: 0.25rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+
+        @media (min-width: 768px) {
+            .md-grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .md-grid-cols-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        /* UE Card */
+        .ue-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .ue-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .ue-average {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .ue-average-label {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+        }
+
+        .ue-ects {
+            text-align: right;
+        }
+
+        .ue-ects-label {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+        }
+
+        .ue-ects-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge svg {
+            width: 0.75rem;
+            height: 0.75rem;
+            margin-right: 0.25rem;
+        }
+
+        .badge-secondary {
+            background-color: var(--secondary);
+            color: var(--secondary-foreground);
+        }
+
+        .badge-success {
+            background-color: hsl(142, 76%, 36%);
+            color: white;
+        }
+
+        .badge-error {
+            background-color: var(--destructive);
+            color: var(--destructive-foreground);
+        }
+
+        /* Grade Input */
+        .grade-input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+
+        .grade-input-row:hover {
+            background-color: var(--accent);
+        }
+
+        .grade-input-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .grade-input-code {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .grade-input-title {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .grade-input-coeff {
+            flex-shrink: 0;
+        }
+
+        .grade-input-field {
+            width: 6rem;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            padding: 0.5rem;
+            border: 1px solid var(--input);
+            border-radius: 0.375rem;
+            background-color: var(--background);
+            color: var(--foreground);
+        }
+
+        .grade-input-field:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Summary */
+        .summary-stat {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .summary-stat-primary {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .summary-stat-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--muted-foreground);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-stat-label svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--primary);
+        }
+
+        .summary-stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+        }
+
+        .summary-stat-value-small {
+            font-size: 1.5rem;
+            color: var(--muted-foreground);
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 1.5rem;
+            background-color: var(--card);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        .quick-stat {
+            text-align: center;
+        }
+
+        .quick-stat-label {
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .quick-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 0.25rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+        }
+
+        footer .container {
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+        }
+
+        footer p {
+            margin: 0.25rem 0;
+        }
+
+        /* Utility */
+        .separator {
+            height: 1px;
+            background-color: var(--border);
+            margin: 1rem 0;
+        }
+
+        .courses-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .space-y-2 > * + * {
+            margin-top: 0.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div>
+                <h1>
+                    <i data-lucide="book-open"></i>
+                    Calculateur de Notes
+                </h1>
+                <p class="subtitle">BUT GEII TRAD - IUT Côte d'Azur</p>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-outline" id="btnResetSemester">
+                    <i data-lucide="rotate-ccw"></i>
+                    Réinitialiser
+                </button>
+                <button class="btn btn-ghost" id="btnResetAll">
+                    Tout effacer
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="tabs">
+            <!-- Tabs Header -->
+            <div class="tabs-header">
+                <div class="tab-list">
+                    <button class="tab-button active" data-semester="S3">Semestre 3</button>
+                    <button class="tab-button" data-semester="S4">Semestre 4</button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="btnViewCalculator">
+                        <i data-lucide="calculator"></i>
+                        Calculateur
+                    </button>
+                    <button class="btn btn-outline" id="btnViewSummary">
+                        <i data-lucide="file-text"></i>
+                        Résumé
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-section" id="progressSection">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">0% des notes saisies</p>
+            </div>
+
+            <!-- Calculator View -->
+            <div id="calculatorView">
+                <div class="grid grid-cols-1 md-grid-cols-2" id="ueCardsContainer"></div>
+            </div>
+
+            <!-- Summary View -->
+            <div id="summaryView" class="hidden"></div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats" id="quickStats"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Application de calcul de notes - BUT GEII TRAD - IUT Côte d'Azur</p>
+            <p>Vos notes sont sauvegardées automatiquement dans votre navigateur</p>
+        </div>
+    </footer>
+
+    <script>
+        // Data
+        const STORAGE_KEY = 'geii-trad-grades';
+
+        const SEMESTER_DATA = {
+            S3: {
+                semester: 'S3',
+                courses: [
+                    { code: 'TBITR301', intitule: 'Anglais', coeff: 48, ues: ['UE31', 'UE32'] },
+                    { code: 'TBITR302', intitule: 'Culture et communication', coeff: 48, ues: ['UE31', 'UE32'] },
+                    { code: 'TBITR303', intitule: 'Vie de l\'entreprise', coeff: 16, ues: ['UE31', 'UE32'] },
+                    { code: 'TBITR304', intitule: 'Outils Mathématiques et Logiciels', coeff: 80, ues: ['UE31', 'UE32'] },
+                    { code: 'TBITR310', intitule: 'Physique appliquée', coeff: 48, ues: ['UE31', 'UE32'] },
+                    { code: 'TBITR305', intitule: 'Projet personnel et professionnel', coeff: 8, ues: ['UE31', 'UE32'] },
+                    { code: 'TBITR306', intitule: 'Automatique', coeff: 50, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITR307', intitule: 'Informatique Industrielle', coeff: 72, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITR308', intitule: 'Electronique (analogique)', coeff: 48, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITR309', intitule: 'Energie', coeff: 72, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITR311', intitule: 'Maintenance', coeff: 16, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITR312', intitule: 'Réseaux et cybersécurité', coeff: 32, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITR315', intitule: 'Supervision/Télégestion', coeff: 32, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITR3A1', intitule: 'Electronique (numérique)', coeff: 32, ues: ['UE33', 'UE34'] },
+                    { code: 'TBITE301', intitule: 'SAÉ LoRa et portfolio', coeff: 200, ues: ['UE31', 'UE32', 'UE33', 'UE34'] },
+                    { code: 'TBITE302', intitule: 'SAÉ Four', coeff: 200, ues: ['UE31', 'UE32', 'UE33', 'UE34'] }
+                ],
+                ues: [
+                    { code: 'UE31', name: 'Ressources transversales 1', ects: 6 },
+                    { code: 'UE32', name: 'Ressources transversales 2', ects: 6 },
+                    { code: 'UE33', name: 'Ressources métiers 1', ects: 9 },
+                    { code: 'UE34', name: 'Ressources métiers 2', ects: 9 }
+                ]
+            },
+            S4: {
+                semester: 'S4',
+                courses: [
+                    { code: 'TBITR401', intitule: 'Anglais', coeff: 36, ues: ['UE41', 'UE42'] },
+                    { code: 'TBITR402', intitule: 'Culture et communication', coeff: 36, ues: ['UE41', 'UE42'] },
+                    { code: 'TBITR403', intitule: 'Vie de l\'entreprise', coeff: 28, ues: ['UE41', 'UE42'] },
+                    { code: 'TBITR404', intitule: 'Outils Mathématiques et Logiciels', coeff: 48, ues: ['UE41', 'UE42'] },
+                    { code: 'TBITR405', intitule: 'Projet personnel et professionnel', coeff: 12, ues: ['UE41', 'UE42'] },
+                    { code: 'TBITR4IA', intitule: 'Bases de l\'IA pour l\'IoT', coeff: 72, ues: ['UE43', 'UE44'] },
+                    { code: 'TBITM407', intitule: 'Energie spécialisée', coeff: 72, ues: ['UE43', 'UE44'] },
+                    { code: 'TBITR406', intitule: 'Automatique', coeff: 54, ues: ['UE43', 'UE44'] },
+                    { code: 'TBITR4A1', intitule: 'Automatisme spécialisé', coeff: 48, ues: ['UE43', 'UE44'] },
+                    { code: 'TBITR4A2', intitule: 'Electronique spécialisée', coeff: 48, ues: ['UE43', 'UE44'] },
+                    { code: 'TBITR4A3', intitule: 'Electronique (numérique)', coeff: 48, ues: ['UE43', 'UE44'] },
+                    { code: 'TBITM401', intitule: 'SAÉ Roue', coeff: 112, ues: ['UE41', 'UE42', 'UE43', 'UE44'] },
+                    { code: 'TBITM4ST', intitule: 'Stage', coeff: 264, ues: ['UE41', 'UE42', 'UE43', 'UE44'] },
+                    { code: 'TBITME4PF', intitule: 'Portfolio', coeff: 8, ues: ['UE41', 'UE42', 'UE43', 'UE44'] }
+                ],
+                ues: [
+                    { code: 'UE41', name: 'Ressources transversales 1', ects: 6 },
+                    { code: 'UE42', name: 'Ressources transversales 2', ects: 6 },
+                    { code: 'UE43', name: 'Ressources métiers 1', ects: 9 },
+                    { code: 'UE44', name: 'Ressources métiers 2', ects: 9 }
+                ]
+            }
+        };
+
+        // State
+        let activeSemester = 'S3';
+        let s3Grades = [];
+        let s4Grades = [];
+        let viewMode = 'calculator';
+
+        // Load grades from localStorage
+        function loadGrades() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    s3Grades = data.s3 || [];
+                    s4Grades = data.s4 || [];
+                } catch (error) {
+                    console.error('Failed to load grades:', error);
+                }
+            }
+        }
+
+        // Save grades to localStorage
+        function saveGrades() {
+            const data = { s3: s3Grades, s4: s4Grades };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // Get current grades
+        function getCurrentGrades() {
+            return activeSemester === 'S3' ? s3Grades : s4Grades;
+        }
+
+        // Set current grades
+        function setCurrentGrades(grades) {
+            if (activeSemester === 'S3') {
+                s3Grades = grades;
+            } else {
+                s4Grades = grades;
+            }
+        }
+
+        // Calculate UE average
+        function calculateUEAverage(ueCode, courses, grades) {
+            const relevantCourses = courses.filter(c => c.ues.includes(ueCode));
+            let totalPoints = 0;
+            let totalCoeff = 0;
+            let hasAllGrades = true;
+
+            for (const course of relevantCourses) {
+                const gradeEntry = grades.find(g => g.courseCode === course.code);
+                if (gradeEntry && gradeEntry.grade !== null) {
+                    totalPoints += gradeEntry.grade * course.coeff;
+                    totalCoeff += course.coeff;
+                } else {
+                    hasAllGrades = false;
+                }
+            }
+
+            const maxCoeff = relevantCourses.reduce((sum, c) => sum + c.coeff, 0);
+
+            if (totalCoeff === 0 || !hasAllGrades) {
+                return { average: null, totalCoeff: maxCoeff, hasAllGrades: false };
+            }
+
+            const average = totalPoints / totalCoeff;
+            return { average, totalCoeff: maxCoeff, hasAllGrades: true };
+        }
+
+        // Calculate semester results
+        function calculateSemesterResults(semesterData, grades) {
+            const ueResults = semesterData.ues.map(ue => {
+                const { average, totalCoeff, hasAllGrades } = calculateUEAverage(
+                    ue.code,
+                    semesterData.courses,
+                    grades
+                );
+
+                return {
+                    code: ue.code,
+                    name: ue.name,
+                    average,
+                    totalCoeff,
+                    hasAllGrades,
+                    validated: hasAllGrades && average !== null && average >= 10,
+                    ects: ue.ects
+                };
+            });
+
+            let totalWeightedPoints = 0;
+            let totalECTS = 0;
+
+            for (const ueResult of ueResults) {
+                if (ueResult.average !== null) {
+                    const ueECTS = semesterData.ues.find(u => u.code === ueResult.code)?.ects || 0;
+                    totalWeightedPoints += ueResult.average * ueECTS;
+                    totalECTS += ueECTS;
+                }
+            }
+
+            const overallAverage = totalECTS > 0 ? totalWeightedPoints / totalECTS : null;
+            const validatedECTS = ueResults.filter(ue => ue.validated).reduce((sum, ue) => sum + ue.ects, 0);
+            const totalPossibleECTS = semesterData.ues.reduce((sum, ue) => sum + ue.ects, 0);
+            const validated = ueResults.length > 0 && ueResults.every(ue => ue.validated);
+
+            return {
+                semester: semesterData.semester,
+                ueResults,
+                overallAverage,
+                totalECTS: totalPossibleECTS,
+                validatedECTS,
+                validated
+            };
+        }
+
+        // Get completion percentage
+        function getCompletionPercentage(courses, grades) {
+            const totalCourses = courses.length;
+            const completedCourses = grades.filter(g => g.grade !== null && g.grade !== undefined).length;
+            return totalCourses > 0 ? (completedCourses / totalCourses) * 100 : 0;
+        }
+
+        // Update grade
+        function updateGrade(courseCode, grade) {
+            const currentGrades = getCurrentGrades();
+            const existingIndex = currentGrades.findIndex(g => g.courseCode === courseCode);
+
+            if (existingIndex >= 0) {
+                if (grade === null) {
+                    currentGrades.splice(existingIndex, 1);
+                } else {
+                    currentGrades[existingIndex].grade = grade;
+                }
+            } else if (grade !== null) {
+                currentGrades.push({ courseCode, grade });
+            }
+
+            setCurrentGrades(currentGrades);
+            saveGrades();
+            render();
+        }
+
+        // Render validation badge
+        function renderValidationBadge(validated, hasAllGrades) {
+            if (!hasAllGrades) {
+                return `
+                    <span class="badge badge-secondary">
+                        <i data-lucide="clock"></i>
+                        En attente
+                    </span>
+                `;
+            }
+
+            if (validated) {
+                return `
+                    <span class="badge badge-success">
+                        <i data-lucide="check-circle-2"></i>
+                        Validée
+                    </span>
+                `;
+            }
+
+            return `
+                <span class="badge badge-error">
+                    <i data-lucide="x-circle"></i>
+                    Non validée
+                </span>
+            `;
+        }
+
+        // Render UE card
+        function renderUECard(ueResult, courses, grades) {
+            const relevantCourses = courses.filter(c => c.ues.includes(ueResult.code));
+
+            const coursesHtml = relevantCourses.map(course => {
+                const gradeEntry = grades.find(g => g.courseCode === course.code);
+                const grade = gradeEntry?.grade ?? '';
+
+                return `
+                    <div class="grade-input-row">
+                        <div class="grade-input-info">
+                            <div class="grade-input-code">${course.code}</div>
+                            <div class="grade-input-title">${course.intitule}</div>
+                        </div>
+                        <span class="badge badge-secondary grade-input-coeff">Coeff. ${course.coeff}</span>
+                        <input 
+                            type="number" 
+                            min="0" 
+                            max="20" 
+                            step="0.25" 
+                            placeholder="--"
+                            value="${grade}"
+                            class="grade-input-field"
+                            data-course="${course.code}"
+                        >
+                        <span style="font-size: 0.875rem; color: var(--muted-foreground);">/20</span>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="ue-header">
+                            <div style="flex: 1;">
+                                <div class="card-title">
+                                    <i data-lucide="award"></i>
+                                    ${ueResult.code}
+                                </div>
+                                <div class="card-subtitle">${ueResult.name}</div>
+                            </div>
+                            ${renderValidationBadge(ueResult.validated, ueResult.hasAllGrades)}
+                        </div>
+                        <div class="ue-stats">
+                            <div>
+                                <div class="ue-average-label">Moyenne</div>
+                                <div class="ue-average">
+                                    ${ueResult.average !== null ? ueResult.average.toFixed(2) : '--'}
+                                    <span style="font-size: 1.125rem; color: var(--muted-foreground);">/20</span>
+                                </div>
+                            </div>
+                            <div class="ue-ects">
+                                <div class="ue-ects-label">ECTS</div>
+                                <div class="ue-ects-value">
+                                    ${ueResult.validated ? ueResult.ects : 0}/${ueResult.ects}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content space-y-2">
+                        <div class="courses-label">Cours (${relevantCourses.length})</div>
+                        ${coursesHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render summary view
+        function renderSummaryView(result) {
+            const ueCardsHtml = result.ueResults.map(ue => {
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="ue-header">
+                                <div>
+                                    <div class="card-title">
+                                        <i data-lucide="award"></i>
+                                        ${ue.code}
+                                    </div>
+                                    <div class="card-subtitle">${ue.name}</div>
+                                </div>
+                                ${renderValidationBadge(ue.validated, ue.hasAllGrades)}
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div class="ue-average-label">Moyenne</div>
+                                    <div class="ue-average">
+                                        ${ue.average !== null ? ue.average.toFixed(2) : '--'}
+                                        <span style="font-size: 1.125rem; color: var(--muted-foreground);">/20</span>
+                                    </div>
+                                </div>
+                                <div class="ue-ects">
+                                    <div class="ue-ects-label">ECTS</div>
+                                    <div class="ue-ects-value">
+                                        ${ue.validated ? ue.ects : 0}/${ue.ects}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i data-lucide="graduation-cap"></i>
+                            Résumé Semestre ${result.semester.replace('S', '')}
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="grid grid-cols-1 md-grid-cols-3">
+                            <div class="summary-stat summary-stat-primary">
+                                <div class="summary-stat-label">
+                                    <i data-lucide="trending-up"></i>
+                                    Moyenne Générale
+                                </div>
+                                <div class="summary-stat-value">
+                                    ${result.overallAverage !== null ? result.overallAverage.toFixed(2) : '--'}
+                                    <span class="summary-stat-value-small">/20</span>
+                                </div>
+                            </div>
+                            <div class="summary-stat" style="border: 1px solid var(--border); border-radius: 0.5rem;">
+                                <div class="summary-stat-label">
+                                    <i data-lucide="trophy"></i>
+                                    ECTS Validés
+                                </div>
+                                <div class="summary-stat-value">
+                                    ${result.validatedECTS}
+                                    <span class="summary-stat-value-small">/${result.totalECTS}</span>
+                                </div>
+                                <div class="progress-bar" style="margin-top: 1rem;">
+                                    <div class="progress-fill" style="width: ${(result.validatedECTS / result.totalECTS) * 100}%"></div>
+                                </div>
+                            </div>
+                            <div class="summary-stat" style="border: 1px solid var(--border); border-radius: 0.5rem;">
+                                <div class="summary-stat-label">
+                                    <i data-lucide="check-circle"></i>
+                                    Statut
+                                </div>
+                                ${result.validated 
+                                    ? '<div class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem; margin-top: 0.5rem;"><i data-lucide="check-circle-2"></i>Semestre validé</div>'
+                                    : '<div class="badge badge-secondary" style="font-size: 1rem; padding: 0.5rem 1rem; margin-top: 0.5rem;"><i data-lucide="clock"></i>En cours</div>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md-grid-cols-2">
+                    ${ueCardsHtml}
+                </div>
+            `;
+        }
+
+        // Render
+        function render() {
+            const semesterData = SEMESTER_DATA[activeSemester];
+            const grades = getCurrentGrades();
+            const results = calculateSemesterResults(semesterData, grades);
+            const completionPercentage = getCompletionPercentage(semesterData.courses, grades);
+
+            // Update reset button
+            document.getElementById('btnResetSemester').innerHTML = `
+                <i data-lucide="rotate-ccw"></i>
+                Réinitialiser ${activeSemester}
+            `;
+
+            // Update progress
+            document.getElementById('progressFill').style.width = `${completionPercentage}%`;
+            document.getElementById('progressText').textContent = `${Math.round(completionPercentage)}% des notes saisies`;
+
+            // Update views
+            if (viewMode === 'calculator') {
+                document.getElementById('calculatorView').classList.remove('hidden');
+                document.getElementById('summaryView').classList.add('hidden');
+                document.getElementById('btnViewCalculator').classList.remove('btn-outline');
+                document.getElementById('btnViewCalculator').classList.add('btn-primary');
+                document.getElementById('btnViewSummary').classList.remove('btn-primary');
+                document.getElementById('btnViewSummary').classList.add('btn-outline');
+
+                const ueCardsHtml = results.ueResults.map(ue => 
+                    renderUECard(ue, semesterData.courses, grades)
+                ).join('');
+                document.getElementById('ueCardsContainer').innerHTML = ueCardsHtml;
+            } else {
+                document.getElementById('calculatorView').classList.add('hidden');
+                document.getElementById('summaryView').classList.remove('hidden');
+                document.getElementById('btnViewCalculator').classList.remove('btn-primary');
+                document.getElementById('btnViewCalculator').classList.add('btn-outline');
+                document.getElementById('btnViewSummary').classList.remove('btn-outline');
+                document.getElementById('btnViewSummary').classList.add('btn-primary');
+
+                document.getElementById('summaryView').innerHTML = renderSummaryView(results);
+            }
+
+            // Update quick stats
+            const validatedUEs = results.ueResults.filter(ue => ue.validated).length;
+            document.getElementById('quickStats').innerHTML = `
+                <div class="quick-stat">
+                    <div class="quick-stat-label">Moyenne</div>
+                    <div class="quick-stat-value">
+                        ${results.overallAverage !== null ? results.overallAverage.toFixed(2) : '--'}/20
+                    </div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-label">UE Validées</div>
+                    <div class="quick-stat-value">
+                        ${validatedUEs}/${results.ueResults.length}
+                    </div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-label">ECTS</div>
+                    <div class="quick-stat-value">
+                        ${results.validatedECTS}/${results.totalECTS}
+                    </div>
+                </div>
+            `;
+
+            // Initialize Lucide icons
+            lucide.createIcons();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGrades();
+            render();
+
+            // Tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeSemester = btn.dataset.semester;
+                    render();
+                });
+            });
+
+            // View buttons
+            document.getElementById('btnViewCalculator').addEventListener('click', () => {
+                viewMode = 'calculator';
+                render();
+            });
+
+            document.getElementById('btnViewSummary').addEventListener('click', () => {
+                viewMode = 'summary';
+                render();
+            });
+
+            // Reset buttons
+            document.getElementById('btnResetSemester').addEventListener('click', () => {
+                if (confirm(`Voulez-vous vraiment réinitialiser toutes les notes du ${activeSemester} ?`)) {
+                    setCurrentGrades([]);
+                    saveGrades();
+                    render();
+                }
+            });
+
+            document.getElementById('btnResetAll').addEventListener('click', () => {
+                if (confirm('Voulez-vous vraiment effacer toutes les notes de S3 et S4 ?')) {
+                    s3Grades = [];
+                    s4Grades = [];
+                    saveGrades();
+                    render();
+                }
+            });
+
+            // Grade input delegation
+            document.addEventListener('input', (e) => {
+                if (e.target.classList.contains('grade-input-field')) {
+                    const courseCode = e.target.dataset.course;
+                    const value = e.target.value;
+                    
+                    if (value === '') {
+                        updateGrade(courseCode, null);
+                    } else {
+                        const numValue = parseFloat(value);
+                        if (!isNaN(numValue) && numValue >= 0 && numValue <= 20) {
+                            updateGrade(courseCode, numValue);
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
