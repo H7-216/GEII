@@ -1,619 +1,388 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simulateur UE - BUT GEII</title>
-    <link rel="icon" type="image/jpeg" href="2.jpeg">
-    <link rel="apple-touch-icon" href="2.jpeg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur BUT2 GEII - S3 & S4</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Courier+Prime&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-      body { font-family: 'Inter', sans-serif; }
-      .font-mono { font-family: 'Courier Prime', monospace; }
-      
-      /* 3D Button Styles */
-      .perspective-1000 {
-        perspective: 1000px;
-      }
-      
-      .transform-style-3d {
-        transform-style: preserve-3d;
-      }
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow: hidden; }
     </style>
-    <script>
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                primary: '#3B82F6',
-                surface: '#FAFAFA',
-                border: '#E5E5E5',
-                'text-primary': '#1F2937',
-                'text-secondary': '#666666',
-              }
-            }
-          }
-        }
-    </script>
-  </head>
-  <body class="bg-gray-50 text-gray-900 antialiased">
-    <div id="root"></div>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen pb-20">
 
-    <script type="text/babel">
-      const { useState, useEffect } = React;
-
-      // --- DATA ---
-      const SEMESTERS = [
-        {
-          id: "S3",
-          name: "Semestre 3",
-          ues: ["UE31", "UE32", "UE33", "UE34"],
-          groups: [
-            {
-              name: "Ressources transversales (UE31 et 32)",
-              subjects: [
-                {
-                  code: "TBITR301", name: "Anglais", coeffTotal: 48,
-                  subGrades: [
-                    { name: "DS", coeff: 18 }, { name: "Implication", coeff: 10 },
-                    { name: "CO", coeff: 10 }, { name: "Oral", coeff: 10 },
-                  ],
-                  ueCoeffs: { UE31: 24, UE32: 24, UE33: 0, UE34: 0 },
-                },
-                {
-                  code: "TBITR302", name: "Culture et communication", coeffTotal: 48,
-                  subGrades: [
-                    { name: "Note de séance", coeff: 12 }, { name: "DS", coeff: 18 }, { name: "Exposé", coeff: 18 },
-                  ],
-                  ueCoeffs: { UE31: 24, UE32: 24, UE33: 0, UE34: 0 },
-                },
-                {
-                  code: "TBITR303", name: "Vie de l'entreprise", coeffTotal: 16,
-                  subGrades: [{ name: "Séance", coeff: 16 }],
-                  ueCoeffs: { UE31: 8, UE32: 8, UE33: 0, UE34: 0 },
-                },
-                {
-                  code: "TBITR304", name: "Outils Mathématiques et Logiciels", coeffTotal: 72,
-                  subGrades: [
-                    { name: "DS1", coeff: 26 }, { name: "DS2", coeff: 26 }, { name: "Seance", coeff: 20 },
-                  ],
-                  ueCoeffs: { UE31: 36, UE32: 36, UE33: 0, UE34: 0 },
-                },
-                {
-                  code: "TBITR310", name: "Physique appliquée", coeffTotal: 48,
-                  subGrades: [
-                    { name: "DS1", coeff: 13 }, { name: "DS2", coeff: 13 },
-                    { name: "Partiel TP", coeff: 13 }, { name: "séance", coeff: 9 },
-                  ],
-                  ueCoeffs: { UE31: 24, UE32: 24, UE33: 0, UE34: 0 },
-                },
-                {
-                  code: "TBITR305", name: "Projet personnel et professionnel", coeffTotal: 8,
-                  subGrades: [{ name: "Candidature", coeff: 8 }],
-                  ueCoeffs: { UE31: 4, UE32: 4, UE33: 0, UE34: 0 },
-                },
-              ],
-            },
-            {
-              name: "Ressources métiers (UE33 et 34)",
-              subjects: [
-                {
-                  code: "TBITR306", name: "Automatique", coeffTotal: 50,
-                  subGrades: [{ name: "DS", coeff: 25 }, { name: "TP", coeff: 25 }],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 25, UE34: 25 },
-                },
-                {
-                  code: "TBITR307", name: "Informatique Industrielle", coeffTotal: 72,
-                  subGrades: [{ name: "DS", coeff: 36 }, { name: "Partiel TP", coeff: 36 }],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 36, UE34: 36 },
-                },
-                {
-                  code: "TBITR308", name: "Electronique (analogique)", coeffTotal: 48,
-                  subGrades: [{ name: "DS", coeff: 32 }, { name: "TP", coeff: 16 }],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 24, UE34: 24 },
-                },
-                {
-                  code: "TBITR309", name: "Energie", coeffTotal: 72,
-                  subGrades: [
-                    { name: "DS1", coeff: 18 }, { name: "DS2", coeff: 18 },
-                    { name: "TP", coeff: 18 }, { name: "Quiz/WIMS", coeff: 18 },
-                  ],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 36, UE34: 36 },
-                },
-                {
-                  code: "TBITR311", name: "Maintenance", coeffTotal: 16,
-                  subGrades: [{ name: "DS", coeff: 16 }],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 8, UE34: 8 },
-                },
-                {
-                  code: "TBITR312", name: "Réseaux et cybersécurité", coeffTotal: 34,
-                  subGrades: [
-                    { name: "DS", coeff: 14 }, { name: "Partiel TP", coeff: 14 },
-                    { name: "Seance TP/TD", coeff: 6 },
-                  ],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 17, UE34: 17 },
-                },
-                {
-                  code: "TBITR315", name: "Supervision/ Télégestion", coeffTotal: 34,
-                  subGrades: [{ name: "DS", coeff: 26 }, { name: "TP", coeff: 8 }],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 17, UE34: 17 },
-                },
-                {
-                  code: "TBITR3A1", name: "Electronique (numérique)", coeffTotal: 34,
-                  subGrades: [{ name: "DS", coeff: 12 }, { name: "Partiel TP", coeff: 20 }],
-                  ueCoeffs: { UE31: 0, UE32: 0, UE33: 17, UE34: 17 },
-                },
-              ],
-            },
-            {
-              name: "Pôle SAE (UE31,32,33 et 34)",
-              subjects: [
-                {
-                  code: "TBITE301", name: "Saé LoRa", coeffTotal: 200,
-                  subGrades: [
-                    { name: "SEANCE", coeff: 80 }, { name: "RAPPORT", coeff: 50 }, { name: "PARTIEL TP", coeff: 70 },
-                  ],
-                  ueCoeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 },
-                },
-                {
-                  code: "TBITE302", name: "Saé Four", coeffTotal: 200,
-                  subGrades: [
-                    { name: "SEANCE", coeff: 70 }, { name: "EVAL", coeff: 65 }, { name: "DS", coeff: 65 },
-                  ],
-                  ueCoeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 },
-                },
-              ],
-            },
-          ],
-        },
-        {
-          id: "S4",
-          name: "Semestre 4",
-          ues: ["UE41", "UE42", "UE43", "UE44"],
-          groups: [
-            {
-              name: "Ressources transversales (UE41 et 42)",
-              subjects: [
-                {
-                  code: "TBITR401", name: "Anglais", coeffTotal: 36,
-                  subGrades: [
-                    { name: "DS", coeff: 18 }, { name: "Débat", coeff: 9 }, { name: "CO", coeff: 9 },
-                  ],
-                  ueCoeffs: { UE41: 18, UE42: 18, UE43: 0, UE44: 0 },
-                },
-                {
-                  code: "TBITR402", name: "Culture et communication", coeffTotal: 36,
-                  subGrades: [{ name: "Eval", coeff: 18 }, { name: "Vidéo", coeff: 18 }],
-                  ueCoeffs: { UE41: 18, UE42: 18, UE43: 0, UE44: 0 },
-                },
-                {
-                  code: "TBITR403", name: "Vie de l'entreprise", coeffTotal: 28,
-                  subGrades: [{ name: "DS", coeff: 28 }],
-                  ueCoeffs: { UE41: 14, UE42: 14, UE43: 0, UE44: 0 },
-                },
-                {
-                  code: "TBITR404", name: "Outils Mathématiques et Logiciels", coeffTotal: 48,
-                  subGrades: [
-                    { name: "DS1", coeff: 18 }, { name: "DS2", coeff: 18 }, { name: "Note de séance", coeff: 12 },
-                  ],
-                  ueCoeffs: { UE41: 24, UE42: 24, UE43: 0, UE44: 0 },
-                },
-                {
-                  code: "TBITR405", name: "Projet personnel et professionnel", coeffTotal: 12,
-                  subGrades: [
-                    { name: "Séance", coeff: 8 }, { name: "Recherche de contrat", coeff: 4 },
-                  ],
-                  ueCoeffs: { UE41: 6, UE42: 6, UE43: 0, UE44: 0 },
-                },
-              ],
-            },
-            {
-              name: "Ressources métiers (UE43 et 44)",
-              subjects: [
-                {
-                  code: "TBITR4IA", name: "Bases de l'IA pour l'IoT", coeffTotal: 72,
-                  subGrades: [{ name: "DS", coeff: 48 }, { name: "Note de séance", coeff: 24 }],
-                  ueCoeffs: { UE41: 0, UE42: 0, UE43: 36, UE44: 36 },
-                },
-                {
-                  code: "TBITM407", name: "Energie spécialisée", coeffTotal: 72,
-                  subGrades: [
-                    { name: "DS", coeff: 30 }, { name: "TP", coeff: 21 }, { name: "Quiz/WIMS", coeff: 21 },
-                  ],
-                  ueCoeffs: { UE41: 0, UE42: 0, UE43: 36, UE44: 36 },
-                },
-                {
-                  code: "TBITR406", name: "Automatique", coeffTotal: 54,
-                  subGrades: [{ name: "DS", coeff: 27 }, { name: "TP", coeff: 27 }],
-                  ueCoeffs: { UE41: 0, UE42: 0, UE43: 27, UE44: 27 },
-                },
-                {
-                  code: "TBITR4A1", name: "Automatisme spécialisé", coeffTotal: 54,
-                  subGrades: [{ name: "DS", coeff: 27 }, { name: "TP", coeff: 27 }],
-                  ueCoeffs: { UE41: 0, UE42: 0, UE43: 27, UE44: 27 },
-                },
-                {
-                  code: "TBITR4A2", name: "Electronique spécialisée", coeffTotal: 54,
-                  subGrades: [{ name: "DS", coeff: 36 }, { name: "TP", coeff: 18 }],
-                  ueCoeffs: { UE41: 0, UE42: 0, UE43: 27, UE44: 27 },
-                },
-                {
-                  code: "TBITR4A3", name: "Electronique (numérique)", coeffTotal: 54,
-                  subGrades: [{ name: "Evaluation", coeff: 54 }],
-                  ueCoeffs: { UE41: 0, UE42: 0, UE43: 27, UE44: 27 },
-                },
-              ],
-            },
-            {
-              name: "Pôle SAE (UE41, 42, 43 et 44)",
-              subjects: [
-                {
-                  code: "TBITM401", name: "Saé Roue", coeffTotal: 200,
-                  subGrades: [
-                    { name: "DS1", coeff: 68 }, { name: "SEANCE", coeff: 68 }, { name: "DOSSIER", coeff: 54 },
-                  ],
-                  ueCoeffs: { UE41: 50, UE42: 50, UE43: 50, UE44: 50 },
-                },
-                {
-                  code: "TBITM4ST", name: "Stage", coeffTotal: 272,
-                  subGrades: [
-                    { name: "Entreprise", coeff: 90 }, { name: "Soutenance orale", coeff: 85 },
-                    { name: "Rapport", coeff: 85 }, { name: "Recherche de Stage", coeff: 12 },
-                  ],
-                  ueCoeffs: { UE41: 68, UE42: 68, UE43: 68, UE44: 68 },
-                },
-                {
-                  code: "TBITME4PF", name: "Portfolio", coeffTotal: 8,
-                  subGrades: [{ name: "Séance", coeff: 8 }],
-                  ueCoeffs: { UE41: 2, UE42: 2, UE43: 2, UE44: 2 },
-                },
-              ],
-            },
-          ],
-        },
-      ];
-
-      // --- ICONS ---
-      // Simple Lucide wrappers using the global lucide object
-      const Icon = ({ name, className }) => {
-        useEffect(() => {
-          lucide.createIcons();
-        }, [name]);
-        return <i data-lucide={name} className={className}></i>;
-      };
-
-      // --- COMPONENTS ---
-
-      function UECard({ ueId, subjects, grades }) {
-        const contributingSubjects = subjects.filter((s) => (s.ueCoeffs[ueId] || 0) > 0);
-
-        let totalWeightedPoints = 0;
-        let totalUECoeffs = 0;
-        let totalSubjectCount = contributingSubjects.length;
-        let filledSubjectCount = 0;
-
-        contributingSubjects.forEach((subj) => {
-          const ueCoeff = subj.ueCoeffs[ueId];
-          let subPoints = 0;
-          let subCoeffs = 0;
-          let subFilled = 0;
-          
-          subj.subGrades.forEach(g => {
-            const val = grades[subj.code]?.[g.name];
-            if (val !== undefined && !isNaN(val)) {
-              subPoints += val * g.coeff;
-              subFilled++;
-            }
-            subCoeffs += g.coeff;
-          });
-
-          const subjAvg = subCoeffs > 0 ? subPoints / subCoeffs : 0;
-          if (subFilled === subj.subGrades.length) {
-            filledSubjectCount++;
-          }
-
-          totalWeightedPoints += subjAvg * ueCoeff;
-          totalUECoeffs += ueCoeff;
-        });
-
-        const ueAverage = totalUECoeffs > 0 ? totalWeightedPoints / totalUECoeffs : 0;
-        const progress = Math.round((filledSubjectCount / totalSubjectCount) * 100);
-        const isValidated = ueAverage >= 10;
-
-        return (
-          <div className="bg-white border border-border rounded-xl p-5 shadow-sm flex flex-col h-full relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
-            <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors"></div>
-            
-            <div className="flex justify-between items-start mb-4 pl-2">
-              <div>
-                <h3 className="text-lg font-bold text-text-primary">{ueId}</h3>
-                <p className="text-xs text-text-secondary mt-1">
-                  {filledSubjectCount}/{totalSubjectCount} matières complétées
-                </p>
-              </div>
-              <div className={`flex items-center justify-center w-10 h-10 rounded-full ${isValidated ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-orange-50'}`}>
-                <Icon name={isValidated ? "check-circle-2" : "alert-circle"} className="w-5 h-5" />
-              </div>
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <img src="@assets/IMG_2214_1767302328247.jpeg" alt="Logo IUT" class="h-12 w-auto object-contain">
+                <select id="semester-selector" onchange="changeSemester(this.value)" class="bg-slate-100 border-none rounded-lg px-3 py-1.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 cursor-pointer hover:bg-slate-200 transition-colors">
+                    <option value="S3">Semestre 3</option>
+                    <option value="S4">Semestre 4</option>
+                </select>
             </div>
-
-            <div className="mt-auto pl-2">
-              <div className="flex items-end gap-2 mb-1">
-                <span className={`text-3xl font-bold font-mono tracking-tight ${isValidated ? 'text-green-600' : 'text-orange-500'}`}>
-                  {ueAverage.toFixed(2)}
-                </span>
-                <span className="text-sm text-text-secondary mb-1.5">/ 20</span>
-              </div>
-              
-              <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden mt-3">
-                <div 
-                  className="h-full bg-primary transition-all duration-500 ease-out"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      function SubjectRow({ subject, grades, onGradeChange }) {
-        const [isExpanded, setIsExpanded] = useState(false);
-
-        let totalPoints = 0;
-        let totalCoeffs = 0;
-        let filledGrades = 0;
-
-        subject.subGrades.forEach((sub) => {
-          const grade = grades[sub.name];
-          if (grade !== undefined && !isNaN(grade)) {
-            totalPoints += grade * sub.coeff;
-            filledGrades++;
-          }
-          totalCoeffs += sub.coeff;
-        });
-
-        const hasAnyGrade = filledGrades > 0;
-        const displayAverage = hasAnyGrade 
-          ? (totalPoints / totalCoeffs).toFixed(2) 
-          : "-";
-        const isComplete = filledGrades === subject.subGrades.length;
-
-        return (
-          <div className={`bg-white border border-border rounded-lg overflow-hidden transition-all duration-200 ${isExpanded ? 'shadow-md ring-1 ring-primary/10' : 'hover:bg-surface hover:shadow-sm'}`}>
-            <div 
-              className="p-4 cursor-pointer grid grid-cols-[1fr_auto_auto] items-center gap-4"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-primary/80 bg-primary/5 px-2 py-0.5 rounded">
-                    {subject.code}
-                  </span>
-                  <h3 className="font-medium text-text-primary">{subject.name}</h3>
+            <div class="flex items-center gap-3 ml-auto">
+                <div class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 flex flex-col items-end shadow-sm border-b-2 border-b-blue-500">
+                    <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest leading-none mb-0.5">Moyenne Globale</span>
+                    <span id="global-average" class="text-base font-black text-blue-600 leading-none">--</span>
                 </div>
-                <div className="text-xs text-text-secondary mt-1 flex gap-2">
-                  <span>Coeff: {subject.coeffTotal}</span>
-                  {isComplete && <span className="text-green-600 flex items-center gap-1"><Icon name="check" className="w-3 h-3" /> Complet</span>}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end min-w-[80px]">
-                <span className="text-xs text-text-secondary uppercase tracking-wider">Moyenne</span>
-                <span className={`font-mono text-lg font-bold ${hasAnyGrade ? (Number(displayAverage) >= 10 ? "text-green-600" : "text-orange-500") : "text-text-secondary/50"}`}>
-                  {displayAverage}
-                </span>
-              </div>
-
-              <div className="text-text-secondary">
-                <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="w-5 h-5" />
-              </div>
+                <button onclick="resetData()" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-[9px] font-black hover:bg-red-100 transition-colors uppercase tracking-widest border border-red-100 border-b-2 border-b-red-200 h-full">Réinitialiser</button>
             </div>
+        </div>
+    </header>
 
-            {isExpanded && (
-              <div className="border-t border-border bg-gray-50/50 p-4 animate-[fadeIn_0.2s_ease-out]">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {subject.subGrades.map((sub) => (
-                    <div key={sub.name} className="flex flex-col gap-1.5">
-                      <label className="text-xs font-medium text-text-secondary flex justify-between">
-                        <span>{sub.name}</span>
-                        <span className="text-text-secondary/70 text-[10px]">Coeff {sub.coeff}</span>
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="20"
-                        step="0.1"
-                        placeholder="-"
-                        className={`w-full bg-white border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all ${grades[sub.name] !== undefined ? 'border-primary/50 text-primary' : 'border-border'}`}
-                        value={grades[sub.name] ?? ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          onGradeChange(sub.name, val === "" ? NaN : parseFloat(val));
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Jury Status -->
+        <div id="jury-card" class="mb-8 p-6 rounded-xl border-2 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500">
+            <div class="text-center md:text-left">
+                <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Statut de validation (BUT2)</h2>
+                <p id="jury-status-text" class="text-xl font-bold text-slate-300 italic">En attente de notes...</p>
+            </div>
+            <div id="jury-icon" class="h-12 w-12 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 text-xl font-bold border-2 border-slate-200">
+                ?
+            </div>
+        </div>
+
+        <!-- UE Summary -->
+        <div id="ue-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <!-- Dynamic UE cards -->
+        </div>
+
+        <!-- Regroupements Summary (S3+S4 Validation logic) -->
+        <div class="mb-4">
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Pôles de Compétences (S3+S4)</h2>
+            <div id="regroupements-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Regroupement cards -->
+            </div>
+        </div>
+
+        <div id="subjects-container" class="space-y-6 mt-8"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 pt-12 pb-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="flex flex-col gap-4">
+                    <img src="@assets/IMG_2214_1767302328247.jpeg" alt="Logo IUT" class="h-16 w-auto object-contain self-start grayscale hover:grayscale-0 transition-all">
+                    <p class="text-slate-500 text-sm leading-relaxed">
+                        Créé par un étudiant <span class="font-bold text-blue-600">GEII 2ème année</span>.<br>
+                        Année universitaire <span class="font-bold">2025 / 2026</span>.
+                    </p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Informations</h3>
+                    <button onclick="toggleModal('modal-tutorial')" class="text-left text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">✨ Tutoriel & Fonctionnement</button>
+                    <button onclick="toggleModal('modal-cookies')" class="text-left text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">🍪 Cookies & Données</button>
+                    <button onclick="toggleModal('modal-cgu')" class="text-left text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">⚖️ Mentions Légales</button>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Contact</h3>
+                    <a href="mailto:hamza.moussa@etu.univ-cotedazur.fr" title="hamza.moussa@etu.univ-cotedazur.fr" class="group flex items-center justify-center bg-blue-50/50 hover:bg-blue-600 w-12 h-12 rounded-2xl border-2 border-blue-100 transition-all overflow-hidden relative">
+                        <div class="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                        <span class="text-2xl relative z-10 transition-transform group-hover:scale-110 duration-300">✉️</span>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 pt-8 text-center">
+                <p class="text-slate-400 text-xs tracking-wide uppercase font-bold opacity-60">Simulateur non-officiel • Université Côte d'Azur • IUT Nice Côte d'Azur</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div id="modal-tutorial" class="hidden fixed inset-0 z-[100] overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" onclick="toggleModal('modal-tutorial')">
+                <div class="absolute inset-0 bg-slate-900 opacity-75"></div>
+            </div>
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-6 pt-6 pb-6">
+                    <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">✨ Comment ça marche ?</h3>
+                    <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+                        <p>L'intérêt de ce site est de te permettre de suivre ton évolution tout au long de l'année et d'anticiper tes résultats du BUT2.</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Saisie :</strong> Remplis tes notes au fur et à mesure. Si une note n'est pas encore connue, laisse le champ vide, elle sera ignorée du calcul.</li>
+                            <li><strong>Calcul :</strong> Le site calcule automatiquement tes moyennes de matières, d'UEs et de regroupements selon les coefficients officiels.</li>
+                            <li><strong>Validation :</strong> Le règlement BUT2 impose d'avoir au moins <span class="font-bold text-red-500">10 de moyenne</span> sur chaque regroupement d'UE (S3+S4) pour valider l'année.</li>
+                        </ul>
                     </div>
-                  ))}
                 </div>
-              </div>
-            )}
-          </div>
-        );
-      }
+                <div class="bg-slate-50 px-6 py-4 flex justify-end">
+                    <button onclick="toggleModal('modal-tutorial')" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest">J'ai compris</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-      function App() {
-        const [activeSemesterId, setActiveSemesterId] = useState("S3");
-        const [grades, setGrades] = useState({});
+    <div id="modal-cookies" class="hidden fixed inset-0 z-[100] overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
+            <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-cookies')"></div>
+            <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
+                <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">🍪 Cookies & Données</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">Ce site fonctionne à <span class="font-bold">100% en local</span>. Aucune donnée n'est envoyée sur un serveur. Tes notes sont stockées uniquement dans ton navigateur via le "localStorage".</p>
+                <button onclick="toggleModal('modal-cookies')" class="mt-8 w-full bg-slate-100 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-slate-600">Fermer</button>
+            </div>
+        </div>
+    </div>
 
-        // Load from local storage on mount
-        useEffect(() => {
-          const savedGrades = localStorage.getItem('ue-grades');
-          if (savedGrades) {
-            try {
-              setGrades(JSON.parse(savedGrades));
-            } catch (e) { console.error("Failed to load grades", e); }
-          }
-        }, []);
+    <div id="modal-cgu" class="hidden fixed inset-0 z-[100] overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
+            <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-cgu')"></div>
+            <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
+                <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">⚖️ Mentions Légales</h3>
+                <p class="text-slate-600 text-sm italic leading-relaxed">Ce simulateur est un outil étudiant non-officiel. Les calculs sont donnés à titre indicatif et ne remplacent en aucun cas le jury officiel de l'IUT Nice Côte d'Azur.</p>
+                <button onclick="toggleModal('modal-cgu')" class="mt-8 w-full bg-slate-100 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-slate-600">Fermer</button>
+            </div>
+        </div>
+    </div>
 
-        // Save to local storage on change
-        useEffect(() => {
-          localStorage.setItem('ue-grades', JSON.stringify(grades));
-        }, [grades]);
-
-        const activeSemester = SEMESTERS.find(s => s.id === activeSemesterId) || SEMESTERS[0];
-        const allSubjects = activeSemester.groups.flatMap(g => g.subjects);
-
-        const handleGradeChange = (subjectCode, subGradeName, value) => {
-          setGrades((prev) => ({
-            ...prev,
-            [subjectCode]: {
-              ...prev[subjectCode],
-              [subGradeName]: value,
+    <script>
+        const CONFIG = {
+            S3: {
+                ues: ["UE31", "UE32", "UE33", "UE34"],
+                labels: { UE31: "Transversale 1", UE32: "Transversale 2", UE33: "Métier 1", UE34: "Métier 2" },
+                data: [
+                    { id: "anglais", name: "Anglais", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS", coeff:18},{name:"Impl.", coeff:10},{name:"CO", coeff:10},{name:"Oral", coeff:10}] },
+                    { id: "culture", name: "Culture et Com.", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"Séance", coeff:12},{name:"DS", coeff:18},{name:"Exposé", coeff:18}] },
+                    { id: "vie_entr", name: "Vie Entr.", coeffs: { UE31: 8, UE32: 8 }, exams: [{name:"Séance", coeff:16}] },
+                    { id: "maths", name: "Maths", coeffs: { UE31: 36, UE32: 36 }, exams: [{name:"DS1", coeff:26},{name:"DS2", coeff:26},{name:"Séance", coeff:20}] },
+                    { id: "physique", name: "Physique", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS1", coeff:13},{name:"DS2", coeff:13},{name:"TP", coeff:13},{name:"Séance", coeff:9}] },
+                    { id: "projet_perso", name: "PPP", coeffs: { UE31: 4, UE32: 4 }, exams: [{name:"Candidature", coeff:8}] },
+                    { id: "automatique", name: "Automatique", coeffs: { UE33: 25, UE34: 25 }, exams: [{name:"DS", coeff:25},{name:"TP", coeff:25}] },
+                    { id: "info_indus", name: "Info Indus", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS", coeff:36},{name:"TP", coeff:36}] },
+                    { id: "elec_ana", name: "Elec Ana", coeffs: { UE33: 24, UE34: 24 }, exams: [{name:"DS", coeff:32},{name:"TP", coeff:16}] },
+                    { id: "energie", name: "Energie", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS1", coeff:18},{name:"DS2", coeff:18},{name:"TP", coeff:18},{name:"Quiz", coeff:18}] },
+                    { id: "maintenance", name: "Maintenance", coeffs: { UE33: 8, UE34: 8 }, exams: [{name:"DS", coeff:16}] },
+                    { id: "reseaux", name: "Réseaux", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:14},{name:"TP", coeff:14},{name:"Séance", coeff:6}] },
+                    { id: "supervision", name: "Supervision", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:26},{name:"TP", coeff:8}] },
+                    { id: "elec_num", name: "Elec Num", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:12},{name:"TP", coeff:20}] },
+                    { id: "sae_lora", name: "SAE LoRa", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"Séance", coeff:80},{name:"Rapport", coeff:50},{name:"TP", coeff:70}] },
+                    { id: "sae_four", name: "SAE Four", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"Séance", coeff:70},{name:"Eval", coeff:65},{name:"DS", coeff:65}] }
+                ]
             },
-          }));
+            S4: {
+                ues: ["UE41", "UE42", "UE43", "UE44"],
+                labels: { UE41: "Transversale 1", UE42: "Transversale 2", UE43: "Métier 1", UE44: "Métier 2" },
+                data: [
+                    { id: "anglais_s4", name: "Anglais", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"DS", coeff:18},{name:"Débat", coeff:9},{name:"CO", coeff:9}] },
+                    { id: "culture_s4", name: "Culture et Com.", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"Eval", coeff:18},{name:"Vidéo", coeff:18}] },
+                    { id: "vie_entr_s4", name: "Vie Entr.", coeffs: { UE41: 14, UE42: 14 }, exams: [{name:"DS", coeff:28}] },
+                    { id: "maths_s4", name: "Maths", coeffs: { UE41: 24, UE42: 24 }, exams: [{name:"DS1", coeff:18},{name:"DS2", coeff:18},{name:"Séance", coeff:12}] },
+                    { id: "ppp_s4", name: "PPP", coeffs: { UE41: 6, UE42: 6 }, exams: [{name:"Séance", coeff:8},{name:"Contrat", coeff:4}] },
+                    { id: "ia_iot", name: "Bases IA/IoT", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:48},{name:"Séance", coeff:24}] },
+                    { id: "energie_spec", name: "Energie Spéc.", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:30},{name:"TP", coeff:21},{name:"Quiz", coeff:21}] },
+                    { id: "auto_s4", name: "Automatique", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
+                    { id: "auto_spec", name: "Auto Spé.", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
+                    { id: "elec_spec", name: "Elec Spé.", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:36},{name:"TP", coeff:18}] },
+                    { id: "elec_num_s4", name: "Elec Num", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"Eval", coeff:54}] },
+                    { id: "sae_roue", name: "SAE Roue", coeffs: { UE41: 50, UE42: 50, UE43: 50, UE44: 50 }, exams: [{name:"DS1", coeff:68},{name:"Séance", coeff:68},{name:"Dossier", coeff:54}] },
+                    { id: "stage", name: "Stage", coeffs: { UE41: 68, UE42: 68, UE43: 68, UE44: 68 }, exams: [{name:"Entrep.", coeff:90},{name:"Sout.", coeff:85},{name:"Rapport", coeff:85},{name:"Rech.", coeff:12}] },
+                    { id: "portfolio", name: "Portfolio", coeffs: { UE41: 2, UE42: 2, UE43: 2, UE44: 2 }, exams: [{name:"Séance", coeff:8}] }
+                ]
+            }
         };
 
-        return (
-          <div className="min-h-screen bg-surface/30 flex flex-col">
-            <header className="bg-white border-b border-border sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/80">
-              <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                    <Icon name="graduation-cap" className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h1 className="font-bold text-lg leading-none text-text-primary">Simulateur UE</h1>
-                    <p className="text-xs text-text-secondary mt-1">BUT GEII</p>
-                  </div>
-                </div>
+        const REGROUPEMENTS = [
+            { id: "R1", label: "Regroupement 1", s3: "UE31", s4: "UE41" },
+            { id: "R2", label: "Regroupement 2", s3: "UE32", s4: "UE42" },
+            { id: "R3", label: "Regroupement 3", s3: "UE33", s4: "UE43" },
+            { id: "R4", label: "Regroupement 4", s3: "UE34", s4: "UE44" }
+        ];
 
-                <div className="flex p-1 bg-gray-100 rounded-lg border border-border">
-                  {SEMESTERS.map((sem) => (
-                    <button
-                      key={sem.id}
-                      onClick={() => setActiveSemesterId(sem.id)}
-                      className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${activeSemesterId === sem.id ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-text-secondary hover:text-text-primary hover:bg-black/5'}`}
-                    >
-                      {sem.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </header>
+        let currentSemester = "S3";
+        let grades = JSON.parse(localStorage.getItem('but2_grades') || '{}');
 
-            <main className="max-w-5xl mx-auto px-4 py-8 flex-1">
-              <div className="mb-8">
-                <h1 className="text-2xl font-bold text-text-primary mb-2">
-                  Tableau de Bord {activeSemester.name}
-                </h1>
-                <p className="text-text-secondary max-w-2xl">
-                  Saisissez vos notes ci-dessous pour calculer automatiquement vos moyennes d'UE et valider votre semestre.
-                </p>
-              </div>
+        function save() { localStorage.setItem('but2_grades', JSON.stringify(grades)); }
+        function changeSemester(sem) { currentSemester = sem; init(); }
+        function toggleModal(modalId) { 
+            const el = document.getElementById(modalId);
+            el.classList.toggle('hidden');
+            document.body.classList.toggle('modal-active');
+        }
 
-              <div className="space-y-8 animate-[fadeIn_0.5s_ease-out]">
-                {/* UEs */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {activeSemester.ues.map((ueId) => (
-                    <UECard 
-                      key={ueId} 
-                      ueId={ueId} 
-                      subjects={allSubjects} 
-                      grades={grades} 
-                    />
-                  ))}
-                </div>
+        function handleInput(subId, examIdx, val) {
+            if (!grades[subId]) grades[subId] = {};
+            if (val === "" || isNaN(val)) delete grades[subId][examIdx];
+            else grades[subId][examIdx] = Math.min(20, Math.max(0, parseFloat(val)));
+            save(); calculate();
+        }
 
-                {/* Groups */}
-                <div className="space-y-8">
-                  {activeSemester.groups.map((group) => (
-                    <section key={group.name} className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-lg font-bold text-text-primary tracking-tight">
-                          {group.name}
-                        </h2>
-                        <div className="h-px flex-1 bg-border"></div>
-                      </div>
-                      
-                      <div className="grid gap-3">
-                        {group.subjects.map((subject) => (
-                          <SubjectRow
-                            key={subject.code}
-                            subject={subject}
-                            grades={grades[subject.code] || {}}
-                            onGradeChange={(name, val) => handleGradeChange(subject.code, name, val)}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              </div>
-            </main>
-
-            {/* Footer */}
-            <footer className="bg-white border-t border-border py-12 mt-8">
-              <div className="max-w-5xl mx-auto px-4 flex flex-col items-center text-center space-y-6">
+        function calculate() {
+            const ueAverages = {};
+            const sem = CONFIG[currentSemester];
+            
+            // Calculate Subject Averages
+            const subjectAvgs = {};
+            sem.data.forEach(sub => {
+                let weighted = 0, weights = 0;
+                const subGrades = grades[sub.id] || {};
+                sub.exams.forEach((ex, i) => {
+                    if (subGrades[i] !== undefined) { weighted += subGrades[i] * ex.coeff; weights += ex.coeff; }
+                });
+                const avg = weights > 0 ? weighted / weights : null;
+                subjectAvgs[sub.id] = avg;
                 
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-text-primary">
-                    Créé par un étudiant en 2ème année GEII
-                  </p>
-                  <p className="text-xs text-text-secondary">
-                    2025/2026
-                  </p>
-                </div>
+                const el = document.getElementById(`avg-${sub.id}`);
+                const card = document.getElementById(`card-${sub.id}`);
+                if (el) {
+                    el.textContent = avg !== null ? avg.toFixed(2) : "--";
+                    el.className = `text-lg font-bold ${avg !== null ? (avg < 10 ? 'text-red-500' : 'text-blue-600') : 'text-slate-300'}`;
+                }
+                if (card) card.style.borderColor = avg !== null && avg < 8 ? '#fecaca' : '';
+            });
 
-                <div className="flex flex-col items-center gap-4 mt-4">
-                  <p className="text-sm font-bold text-text-primary flex items-center gap-2 animate-bounce">
-                    Un problème vous rencontrez ? 👇🏾
-                  </p>
-                  
-                  <a 
-                    href="https://snapchat.com/t/m37E0E8l" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group relative perspective-1000"
-                  >
-                    <div className="
-                      relative
-                      px-8 py-3 
-                      bg-[#FFFC00] 
-                      text-black 
-                      font-bold 
-                      rounded-xl 
-                      shadow-[0_10px_20px_rgba(0,0,0,0.1)] 
-                      transform 
-                      transition-all 
-                      duration-300 
-                      hover:rotate-x-12 
-                      hover:scale-105 
-                      hover:shadow-[0_20px_30px_rgba(0,0,0,0.15)]
-                      border-2 border-black
-                      flex items-center gap-3
-                    ">
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                        <path d="M12.005 0C5.155 0 0 4.8 0 11.29c0 3.185 2.27 5.26 2.27 5.26s-1.22.68-1.65.9c-.43.22-.36.85.07 1.18.42.33 3.6 2.48 6.04 2.48 0 0 .76.72.61 1.8-.14 1.07-3.3 1.1-3.3 1.1s.1 1.23 1.8 1.23h12.4c1.7 0 1.8-1.23 1.8-1.23s-3.15-.04-3.3-1.1c-.14-1.08.6-1.8.6-1.8 2.45 0 5.62-2.15 6.04-2.48.43-.33.5-.96.07-1.18-.43-.22-1.65-.9-1.65-.9s2.27-2.07 2.27-5.26C24 4.8 18.85 0 12.005 0z"/>
-                      </svg>
-                      <span>Contactez-moi sur Snapchat</span>
+            // Semester UE Calculation
+            sem.ues.forEach(ue => {
+                let weighted = 0, weights = 0;
+                sem.data.forEach(sub => {
+                    if (sub.coeffs[ue] && subjectAvgs[sub.id] !== null) {
+                        weighted += subjectAvgs[sub.id] * sub.coeffs[ue];
+                        weights += sub.coeffs[ue];
+                    }
+                });
+                ueAverages[ue] = weights > 0 ? weighted / weights : null;
+            });
+
+            // Global Semester Average
+            let semTotalWeighted = 0, semTotalWeights = 0;
+            Object.values(ueAverages).forEach(val => { if(val !== null) { semTotalWeighted += val; semTotalWeights++; } });
+            const globalAvg = semTotalWeights > 0 ? semTotalWeighted / semTotalWeights : null;
+            const gEl = document.getElementById('global-average');
+            gEl.textContent = globalAvg !== null ? globalAvg.toFixed(2) : "--";
+            gEl.className = `text-xl font-black ${globalAvg !== null ? (globalAvg < 10 ? 'text-red-500' : 'text-blue-600') : 'text-slate-300'}`;
+
+            // Regroupements
+            const regAverages = {};
+            REGROUPEMENTS.forEach(reg => {
+                const s3Avg = getUEAverage("S3", reg.s3);
+                const s4Avg = getUEAverage("S4", reg.s4);
+                
+                let combined = null;
+                if (s3Avg !== null && s4Avg !== null) combined = (s3Avg + s4Avg) / 2;
+                else if (s3Avg !== null) combined = s3Avg;
+                else if (s4Avg !== null) combined = s4Avg;
+                
+                regAverages[reg.id] = combined;
+                const regVal = document.getElementById(`reg-val-${reg.id}`);
+                if (regVal) {
+                    regVal.textContent = combined !== null ? combined.toFixed(2) : "--";
+                    regVal.className = `text-xl font-bold ${combined !== null && combined < 10 ? 'text-red-600' : 'text-emerald-600'}`;
+                }
+            });
+
+            renderUESummary(ueAverages);
+            updateJuryStatus(regAverages);
+        }
+
+        function getUEAverage(semKey, ueKey) {
+            const sem = CONFIG[semKey];
+            let weighted = 0, weights = 0;
+            sem.data.forEach(sub => {
+                if (sub.coeffs[ueKey]) {
+                    let subW = 0, subWeights = 0;
+                    const sg = grades[sub.id] || {};
+                    sub.exams.forEach((ex, i) => { if(sg[i] !== undefined) { subW += sg[i] * ex.coeff; subWeights += ex.coeff; } });
+                    if (subWeights > 0) {
+                        weighted += (subW / subWeights) * sub.coeffs[ueKey];
+                        weights += sub.coeffs[ueKey];
+                    }
+                }
+            });
+            return weights > 0 ? weighted / weights : null;
+        }
+
+        function renderUESummary(avgs) {
+            const container = document.getElementById('ue-summary');
+            container.innerHTML = CONFIG[currentSemester].ues.map(ue => {
+                const avg = avgs[ue];
+                const color = avg === null ? 'slate-300' : (avg < 10 ? 'red-600' : 'blue-600');
+                return `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm transition-all hover:border-blue-200">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">${ue}</div>
+                        <div class="text-[11px] text-slate-500 mb-2 truncate font-medium">${CONFIG[currentSemester].labels[ue]}</div>
+                        <div class="text-2xl font-black text-${color} leading-none">${avg !== null ? avg.toFixed(2) : '--'}</div>
                     </div>
-                  </a>
+                `;
+            }).join('');
+        }
+
+        function updateJuryStatus(regAverages) {
+            const statusText = document.getElementById('jury-status-text');
+            const statusIcon = document.getElementById('jury-icon');
+            const card = document.getElementById('jury-card');
+            
+            const regs = Object.values(regAverages);
+            const anyRegBelow10 = regs.some(v => v !== null && v < 10);
+            const allRegsFilled = regs.every(v => v !== null);
+
+            if (anyRegBelow10) {
+                statusText.textContent = "Validation IMPOSSIBLE : Un regroupement est inférieur à 10.";
+                statusText.className = "text-xl font-bold text-red-600";
+                statusIcon.innerHTML = "✖"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-red-100 text-red-600 font-bold border-2 border-red-200";
+                card.className = "mb-8 p-6 rounded-xl border-2 border-red-200 bg-red-50/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+            } else if (allRegsFilled) {
+                statusText.textContent = "Validation ADMISE : Tous les regroupements sont validés.";
+                statusText.className = "text-xl font-bold text-emerald-600";
+                statusIcon.innerHTML = "✔"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold border-2 border-emerald-200";
+                card.className = "mb-8 p-6 rounded-xl border-2 border-emerald-200 bg-emerald-50/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+            } else {
+                statusText.textContent = "En attente de notes pour calcul final...";
+                statusText.className = "text-xl font-semibold text-slate-400 italic";
+                statusIcon.innerHTML = "?"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 border-2 border-slate-200";
+                card.className = "mb-8 p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+            }
+        }
+
+        function init() {
+            const container = document.getElementById('subjects-container');
+            container.innerHTML = "";
+            
+            const regContainer = document.getElementById('regroupements-container');
+            regContainer.innerHTML = REGROUPEMENTS.map(reg => `
+                <div class="bg-white border border-slate-200 p-4 rounded-xl flex items-center justify-between shadow-sm hover:border-blue-200 transition-all">
+                    <div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${reg.label}</div>
+                        <div class="text-xs text-slate-500 font-medium">${reg.s3} <span class="text-slate-300 mx-1">/</span> ${reg.s4}</div>
+                    </div>
+                    <div id="reg-val-${reg.id}" class="text-2xl font-black text-slate-300">--</div>
                 </div>
+            `).join('');
 
-              </div>
-            </footer>
-          </div>
-        );
-      }
+            CONFIG[currentSemester].data.forEach(sub => {
+                const card = document.createElement('div');
+                card.id = `card-${sub.id}`;
+                card.className = "bg-white border border-slate-200 rounded-xl p-6 shadow-sm fade-in hover:shadow-md transition-all";
+                
+                const examsHtml = sub.exams.map((ex, i) => `
+                    <div class="flex-1 min-w-[100px]">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 truncate tracking-widest">${ex.name} <span class="text-slate-300">x${ex.coeff}</span></label>
+                        <input type="number" step="0.1" value="${(grades[sub.id] && grades[sub.id][i]) || ''}" 
+                            oninput="handleInput('${sub.id}', ${i}, this.value)"
+                            placeholder="0.0"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                `).join('');
 
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<App />);
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-black text-slate-800 tracking-tight">${sub.name}</h3>
+                        <div id="avg-${sub.id}" class="text-xl font-black text-slate-300">--</div>
+                    </div>
+                    <div class="flex flex-wrap gap-4">${examsHtml}</div>
+                `;
+                container.appendChild(card);
+            });
+            calculate();
+        }
+
+        function resetData() { if(confirm("Effacer TOUTES les notes (S3 et S4) ?")) { grades = {}; save(); init(); } }
+        document.addEventListener('DOMContentLoaded', init);
     </script>
-  </body>
+</body>
 </html>
