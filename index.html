@@ -25,12 +25,8 @@
                     <option value="S4">Semestre 4</option>
                 </select>
             </div>
-            <div class="flex items-center gap-3 ml-auto">
-                <div class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 flex flex-col items-end shadow-sm border-b-2 border-b-blue-500">
-                    <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest leading-none mb-0.5">Moyenne Globale</span>
-                    <span id="global-average" class="text-base font-black text-blue-600 leading-none">--</span>
-                </div>
-                <button onclick="resetData()" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-[9px] font-black hover:bg-red-100 transition-colors uppercase tracking-widest border border-red-100 border-b-2 border-b-red-200 h-full">Réinitialiser</button>
+            <div class="flex items-center gap-3 ml-auto h-9">
+                <button onclick="resetData()" class="bg-red-50 text-red-600 px-4 rounded-lg text-[9px] font-black hover:bg-red-100 transition-colors uppercase tracking-widest border border-red-100 border-b-2 border-b-red-200 h-full whitespace-nowrap">Réinitialiser</button>
             </div>
         </div>
     </header>
@@ -39,14 +35,40 @@
         
         <!-- Jury Status -->
         <div id="jury-card" class="mb-8 p-6 rounded-xl border-2 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500">
-            <div class="text-center md:text-left">
+            <div class="text-center md:text-left flex-1">
                 <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Statut de validation (BUT2)</h2>
-                <p id="jury-status-text" class="text-xl font-bold text-slate-300 italic">En attente de notes...</p>
+                <p id="jury-status-text" class="text-xl font-bold text-slate-300 italic mb-3">En attente de notes...</p>
+                
+                <div class="inline-flex flex-col items-start bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2">
+                    <span class="text-[9px] text-blue-400 uppercase font-black tracking-widest leading-none mb-1">Moyenne Globale du semestre</span>
+                    <span id="global-average" class="text-2xl font-black text-blue-600 leading-none">--</span>
+                </div>
             </div>
-            <div id="jury-icon" class="h-12 w-12 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 text-xl font-bold border-2 border-slate-200">
+            <div id="jury-icon" onclick="toggleModal('modal-validation-info')" class="h-16 w-16 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 text-2xl font-bold border-2 border-slate-200 cursor-pointer hover:bg-slate-200 hover:border-blue-200 hover:text-blue-500 transition-all shadow-sm">
                 ?
             </div>
         </div>
+
+    <div id="modal-validation-info" class="hidden fixed inset-0 z-[100] overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
+            <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-validation-info')"></div>
+            <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
+                <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">🎓 Comprendre la Validation (BUT2)</h3>
+                <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+                    <p>Le statut de validation indique si vous remplissez les conditions pour valider votre année de BUT2 GEII :</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Moyenne de Regroupement :</strong> Vous devez avoir au moins <span class="font-bold text-blue-600">10/20</span> de moyenne sur chaque pôle de compétences (S3 + S4 combinés).</li>
+                        <li><strong>Compensation :</strong> Les notes se compensent entre le S3 et le S4 au sein d'un même pôle.</li>
+                        <li><strong>Calcul Progressif :</strong> Tant que toutes les notes ne sont pas saisies, le simulateur affiche une estimation basée sur vos résultats actuels.</li>
+                    </ul>
+                    <p class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-blue-700 text-xs italic">
+                        Note : Ce calcul est basé sur les Modalités de Contrôle des Connaissances (MCC) officielles du BUT GEII.
+                    </p>
+                </div>
+                <button onclick="toggleModal('modal-validation-info')" class="mt-8 w-full bg-blue-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-white hover:bg-blue-700 transition-colors">Fermer</button>
+            </div>
+        </div>
+    </div>
 
         <!-- UE Summary -->
         <div id="ue-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -66,30 +88,36 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 pt-12 pb-8 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <div class="flex flex-col gap-4">
-                    <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-16 w-auto object-contain self-start grayscale hover:grayscale-0 transition-all">
-                    <p class="text-slate-500 text-sm leading-relaxed">
-                        Créé par un étudiant <span class="font-bold text-blue-600">GEII 2ème année</span>.<br>
-                        Année universitaire <span class="font-bold">2025 / 2026</span>.
-                    </p>
-                </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex flex-col items-center gap-6 mb-12">
+                <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-24 w-auto object-contain grayscale hover:grayscale-0 transition-all">
+                <p class="text-slate-500 text-sm leading-relaxed max-w-md">
+                    Créé par un étudiant <span class="font-bold text-blue-600">GEII 2ème année</span>.<br>
+                    Année universitaire <span class="font-bold">2025 / 2026</span>.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-2xl mx-auto">
                 <div class="flex flex-col gap-3">
                     <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Informations</h3>
-                    <button onclick="toggleModal('modal-tutorial')" class="text-left text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">✨ Tutoriel & Fonctionnement</button>
-                    <button onclick="toggleModal('modal-cookies')" class="text-left text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">🍪 Cookies & Données</button>
-                    <button onclick="toggleModal('modal-cgu')" class="text-left text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">⚖️ Mentions Légales</button>
+                    <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+                        <button onclick="toggleModal('modal-tutorial')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">✨ Tutoriel</button>
+                        <button onclick="toggleModal('modal-cookies')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">🍪 Cookies</button>
+                        <button onclick="toggleModal('modal-cgu')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">⚖️ Mentions Légales</button>
+                    </div>
                 </div>
                 <div class="flex flex-col gap-3">
                     <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Contact</h3>
-                    <a href="mailto:hamza.moussa@etu.univ-cotedazur.fr" title="hamza.moussa@etu.univ-cotedazur.fr" class="group flex items-center justify-center bg-blue-50/50 hover:bg-blue-600 w-12 h-12 rounded-2xl border-2 border-blue-100 transition-all overflow-hidden relative">
-                        <div class="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                        <span class="text-2xl relative z-10 transition-transform group-hover:scale-110 duration-300">✉️</span>
-                    </a>
+                    <div class="flex justify-center">
+                        <a href="mailto:hamza.moussa@etu.univ-cotedazur.fr" title="hamza.moussa@etu.univ-cotedazur.fr" class="group flex items-center justify-center bg-blue-50/50 hover:bg-blue-600 w-12 h-12 rounded-2xl border-2 border-blue-100 transition-all overflow-hidden relative">
+                            <div class="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                            <span class="text-2xl relative z-10 transition-transform group-hover:scale-110 duration-300">✉️</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="border-t border-slate-100 pt-8 text-center">
+            
+            <div class="border-t border-slate-100 pt-8">
                 <p class="text-slate-400 text-xs tracking-wide uppercase font-bold opacity-60">Simulateur non-officiel • Université Côte d'Azur • IUT Nice Côte d'Azur</p>
             </div>
         </div>
