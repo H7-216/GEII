@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/PNG" href="Pronote.PNG">
     <link rel="apple-touch-icon" href="Pronote.PNG">
-    <title>Cyber-Simulateur BUT2 GEII • Nice</title>
+    <title>Simulateur BUT2 GEII - S3 & S4</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { 
-            font-family: 'Space Grotesk', sans-serif;
-            background-color: #0b0f19;
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
+            overflow-x: hidden;
         }
         #canvas-3d-container {
             position: fixed;
@@ -20,227 +21,235 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
+            z-index: 0;
             pointer-events: none;
+            opacity: 0.85;
         }
         .interactive-ui {
             position: relative;
             z-index: 10;
         }
-        .neon-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .neon-card:hover {
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-            transform: translateY(-2px);
-        }
-        .neon-text-blue {
-            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-        }
-        .neon-text-emerald {
-            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-        }
-        .neon-text-red {
-            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-        }
-        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         body.modal-active { overflow: hidden; }
-        
-        /* Custom Scrollbar futuriste */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0b0f19; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+        }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen pb-20">
+<body class="text-slate-900 min-h-screen pb-20">
 
     <div id="canvas-3d-container"></div>
 
-    <header class="interactive-ui bg-slate-900/80 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+    <header class="interactive-ui bg-white/80 border-b border-slate-200 sticky top-0 z-50 shadow-sm backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <div class="h-12 w-12 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center font-bold text-xl tracking-tighter text-white shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse">
-                    GEII
-                </div>
-                <div>
-                    <h1 class="text-sm font-black tracking-wider uppercase text-slate-400">Simulateur d'Écurie Automatisé</h1>
-                    <select id="semester-selector" onchange="changeSemester(this.value)" class="mt-0.5 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1 text-xs font-bold text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer hover:bg-slate-700 transition-colors outline-none">
-                        <option value="S3">SEMESTRE 3</option>
-                        <option value="S4">SEMESTRE 4</option>
-                    </select>
-                </div>
+                <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-12 w-auto object-contain">
+                <select id="semester-selector" onchange="changeSemester(this.value)" class="bg-slate-100/80 border-none rounded-lg px-3 py-1.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 cursor-pointer hover:bg-slate-200 transition-colors outline-none">
+                    <option value="S3">Semestre 3</option>
+                    <option value="S4">Semestre 4</option>
+                </select>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="resetData()" class="bg-red-950/40 text-red-400 px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-red-900/60 transition-all uppercase tracking-widest border border-red-900/50 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
-                    Purger les données
-                </button>
+            <div class="flex items-center gap-3 ml-auto h-9">
+                <button onclick="resetData()" class="bg-red-50 text-red-600 px-4 rounded-lg text-[9px] font-black hover:bg-red-100 transition-colors uppercase tracking-widest border border-red-100 border-b-2 border-b-red-200 h-full whitespace-nowrap">Réinitialiser</button>
             </div>
         </div>
     </header>
 
     <main class="interactive-ui max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div id="jury-card" class="mb-8 p-6 rounded-2xl border bg-slate-900/60 border-slate-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500">
+        <div id="jury-card" class="mb-8 p-6 rounded-xl border-2 glass-card shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500">
             <div class="text-center md:text-left flex-1">
-                <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Analyseur de Validation Annuelle (BUT2)</h2>
-                <p id="jury-status-text" class="text-xl font-bold text-slate-400 italic mb-4">Initialisation des modules de calcul...</p>
+                <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Statut de validation (BUT2)</h2>
+                <p id="jury-status-text" class="text-xl font-bold text-slate-300 italic mb-3">En attente de notes...</p>
                 
-                <div class="inline-flex flex-col items-start bg-slate-950/60 border border-slate-800 rounded-xl px-5 py-3">
-                    <span class="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-1">Moyenne Globale Estimée</span>
-                    <span id="global-average" class="text-3xl font-black text-slate-400 leading-none">--</span>
+                <div class="inline-flex flex-col items-start bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2">
+                    <span class="text-[9px] text-blue-400 uppercase font-black tracking-widest leading-none mb-1">Moyenne Globale du semestre</span>
+                    <span id="global-average" class="text-2xl font-black text-blue-600 leading-none">--</span>
                 </div>
             </div>
-            <div id="jury-icon" onclick="toggleModal('modal-validation-info')" class="h-14 w-14 rounded-xl flex items-center justify-center bg-slate-800 border border-slate-700 text-slate-400 text-lg font-bold cursor-pointer hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all shadow-md">
+            <div id="jury-icon" onclick="toggleModal('modal-validation-info')" class="h-16 w-16 rounded-full flex items-center justify-center bg-white/50 text-slate-400 text-2xl font-bold border-2 border-slate-200 cursor-pointer hover:bg-white hover:border-blue-200 hover:text-blue-500 transition-all shadow-sm">
                 ?
             </div>
         </div>
 
         <div id="modal-validation-info" class="hidden fixed inset-0 z-[100] overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4 text-center">
-                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleModal('modal-validation-info')"></div>
-                <div class="inline-block bg-slate-900 border border-slate-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:max-w-lg sm:w-full p-8 relative z-50">
-                    <h3 class="text-xl font-bold text-white mb-4 tracking-tight">🎓 Compensation des Blocs (MCC)</h3>
-                    <div class="space-y-4 text-slate-400 text-sm leading-relaxed">
-                        <p>Le protocole d'acquisition du BUT2 GEII fonctionne par regroupement inter-semestriel :</p>
+            <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
+                <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-validation-info')"></div>
+                <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8 relative z-50">
+                    <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">🎓 Comprendre la Validation (BUT2)</h3>
+                    <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+                        <p>Le statut de validation indique si vous remplissez les conditions pour valider votre année de BUT2 GEII :</p>
                         <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Calcul des Blocs :</strong> Les moyennes du Bloc X au S3 et du Bloc X au S4 se compensent directement.</li>
-                            <li><strong>Seuil d'admission :</strong> Chaque pôle combiné (S3+S4) doit afficher une valeur $\ge 10.00$.</li>
-                            <li><strong>Note éliminatoire :</strong> Aucune UE ne doit descendre en dessous de la note limite absolue de $8.00$.</li>
+                            <li><strong>Moyenne de Regroupement :</strong> Vous devez avoir au moins <span class="font-bold text-blue-600">10/20</span> de moyenne sur chaque pôle de compétences (S3 + S4 combinés).</li>
+                            <li><strong>Compensation :</strong> Les notes se compensent entre le S3 et le S4 au sein d'un même pôle.</li>
+                            <li><strong>Calcul Progressif :</strong> Tant que toutes les notes ne sont pas saisies, le simulateur affiche une estimation basée sur vos résultats actuels.</li>
                         </ul>
+                        <p class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-blue-700 text-xs italic">
+                            Note : Ce calcul est basé sur les Modalités de Contrôle des Connaissances (MCC) officielles du BUT GEII.
+                        </p>
                     </div>
-                    <button onclick="toggleModal('modal-validation-info')" class="mt-8 w-full bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-white hover:bg-blue-700 transition-colors">Fermer la console</button>
+                    <button onclick="toggleModal('modal-validation-info')" class="mt-8 w-full bg-blue-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-white hover:bg-blue-700 transition-colors">Fermer</button>
                 </div>
             </div>
         </div>
 
-        <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 px-1">Unités d'Enseignement (Semestre Actif)</h2>
         <div id="ue-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
 
         <div class="mb-4">
-            <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 px-1">Bilan de l'Année : Statut des 4 Blocs Nationaux</h2>
-            <div id="regroupements-container" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Pôles de Compétences (S3+S4)</h2>
+            <div id="regroupements-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 mt-8 px-1">Détail des Coefficients & des Évaluations</h2>
-        <div id="subjects-container" class="space-y-4"></div>
+        <div id="subjects-container" class="space-y-6 mt-8"></div>
     </main>
 
+    <footer class="interactive-ui bg-white/80 border-t border-slate-200 pt-12 pb-8 mt-12 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex flex-col items-center gap-6 mb-12">
+                <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-24 w-auto object-contain grayscale hover:grayscale-0 transition-all">
+                <p class="text-slate-500 text-sm leading-relaxed max-w-md">
+                    Créé par un étudiant <span class="font-bold text-blue-600">GEII 2ème année</span>.<br>
+                    Année universitaire <span class="font-bold">2025 / 2026</span>.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-2xl mx-auto">
+                <div class="flex flex-col gap-3">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Informations</h3>
+                    <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+                        <button onclick="toggleModal('modal-tutorial')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">✨ Tutoriel</button>
+                        <button onclick="toggleModal('modal-cookies')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">🍪 Cookies</button>
+                        <button onclick="toggleModal('modal-cgu')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">⚖️ Mentions Légales</button>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Contact</h3>
+                    <div class="flex justify-center">
+                        <a href="mailto:hamza.moussa@etu.univ-cotedazur.fr" class="group flex items-center justify-center bg-blue-50/50 hover:bg-blue-600 w-12 h-12 rounded-2xl border-2 border-blue-100 transition-all overflow-hidden relative">
+                            <div class="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                            <span class="text-2xl relative z-10 transition-transform group-hover:scale-110 duration-300">✉️</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-100 pt-8">
+                <p class="text-slate-400 text-xs tracking-wide uppercase font-bold opacity-60">Simulateur non-officiel • Université Côte d'Azur • IUT Nice Côte d'Azur</p>
+            </div>
+        </div>
+    </footer>
+
     <div id="modal-tutorial" class="hidden fixed inset-0 z-[100] overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleModal('modal-tutorial')"></div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-md w-full relative z-50">
-                <h3 class="text-lg font-bold text-white mb-4">✨ Manuel Opérationnel</h3>
-                <p class="text-sm text-slate-400 leading-relaxed mb-6">Entre tes notes sur les champs d'acquisition. Les zones laissées vierges ne faussent pas le calcul dynamique en cours, permettant une simulation prédictive pas à pas.</p>
-                <button onclick="toggleModal('modal-tutorial')" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">Compris</button>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" onclick="toggleModal('modal-tutorial')">
+                <div class="absolute inset-0 bg-slate-900 opacity-75"></div>
+            </div>
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-6 pt-6 pb-6">
+                    <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">✨ Comment ça marche ?</h3>
+                    <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+                        <p>L'intérêt de ce site est de te permettre de suivre ton évolution tout au long de l'année et d'anticiper tes résultats du BUT2.</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Saisie :</strong> Remplis tes notes au fur et à mesure. Si une note n'est pas encore connue, laisse le champ vide, elle sera ignorée du calcul.</li>
+                            <li><strong>Calcul :</strong> Le site calcule automatiquement tes moyennes de matières, d'UEs et de regroupements selon les coefficients officiels.</li>
+                            <li><strong>Validation :</strong> Le règlement BUT2 impose d'avoir au moins <span class="font-bold text-red-500">10 de moyenne</span> sur chaque regroupement d'UE (S3+S4) pour valider l'année.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-6 py-4 flex justify-end">
+                    <button onclick="toggleModal('modal-tutorial')" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest">J'ai compris</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="modal-cookies" class="hidden fixed inset-0 z-[100] overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleModal('modal-cookies')"></div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-md w-full relative z-50">
-                <h3 class="text-lg font-bold text-white mb-2">🍪 Stockage Chiffré Local</h3>
-                <p class="text-sm text-slate-400 leading-relaxed mb-6">Zéro base de données externe. Tes métriques restent persistées localement dans le bac à sable de ton explorateur via l'API LocalStorage.</p>
-                <button onclick="toggleModal('modal-cookies')" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">Fermer</button>
+        <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
+            <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-cookies')"></div>
+            <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
+                <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">🍪 Cookies & Données</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">Ce site fonctionne à <span class="font-bold">100% en local</span>. Aucune donnée n'est envoyée sur un serveur. Tes notes sont stockées uniquement dans ton navigateur via le "localStorage".</p>
+                <button onclick="toggleModal('modal-cookies')" class="mt-8 w-full bg-slate-100 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-slate-600">Fermer</button>
             </div>
         </div>
     </div>
 
     <div id="modal-cgu" class="hidden fixed inset-0 z-[100] overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleModal('modal-cgu')"></div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-md w-full relative z-50">
-                <h3 class="text-lg font-bold text-white mb-2">⚖️ Clause d'Avertissement</h3>
-                <p class="text-sm text-slate-400 italic leading-relaxed mb-6">Code produit en autonomie d'ingénierie étudiante. Seuls les PV émanant des serveurs Apogée de l'Université Côte d'Azur font foi.</p>
-                <button onclick="toggleModal('modal-cgu')" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">Fermer</button>
+        <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
+            <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-cgu')"></div>
+            <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
+                <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">⚖️ Mentions Légales</h3>
+                <p class="text-slate-600 text-sm italic leading-relaxed">Ce simulateur est un outil étudiant non-officiel. Les calculs sont donnés à titre indicatif et ne remplacent en aucun cas le jury officiel de l'IUT Nice Côte d'Azur.</p>
+                <button onclick="toggleModal('modal-cgu')" class="mt-8 w-full bg-slate-100 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-slate-600">Fermer</button>
             </div>
         </div>
     </div>
 
-    <footer class="interactive-ui border-t border-slate-900 bg-slate-950/40 pt-10 pb-8 mt-16">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-xs text-slate-600 uppercase tracking-widest font-bold">PROJET DE SIMULATION AUTOMATIQUE • GEII NICE</p>
-            <div class="flex justify-center gap-6 mt-4 text-xs text-slate-500">
-                <button onclick="toggleModal('modal-tutorial')" class="hover:text-blue-400 transition-colors">Tutoriel</button>
-                <button onclick="toggleModal('modal-cookies')" class="hover:text-blue-400 transition-colors">Cookies</button>
-                <button onclick="toggleModal('modal-cgu')" class="hover:text-blue-400 transition-colors">Mentions</button>
-            </div>
-        </div>
-    </footer>
-
     <script>
-        // CONFIGURATION DES COEFFICIENTS OFFICIELS EXTRAITS DE TES RELEVÉS
         const CONFIG = {
             S3: {
                 ues: ["UE31", "UE32", "UE33", "UE34"],
-                labels: { UE31: "Concevoir la partie GEII", UE32: "Vérifier la partie GEII", UE33: "Assurer le MCO", UE34: "Installer (Parcours EME)" },
+                labels: { UE31: "Transversale 1", UE32: "Transversale 2", UE33: "Métier 1", UE34: "Métier 2" },
                 data: [
-                    { id: "R3_01", name: "R3.01 - Anglais", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS", coeff:18},{name:"Impl.", coeff:10},{name:"CO", coeff:10},{name:"Oral", coeff:10}] },
-                    { id: "R3_02", name: "R3.02 - Culture et Communication", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"Séance", coeff:6},{name:"DS", coeff:21},{name:"Exposé", coeff:21}] },
-                    { id: "R3_03", name: "R3.03 - Vie de l'Entreprise", coeffs: { UE31: 8, UE32: 8 }, exams: [{name:"Évaluation", coeff:16}] },
-                    { id: "R3_04", name: "R3.04 - Outils Mathématiques et Logiciels", coeffs: { UE31: 36, UE32: 36 }, exams: [{name:"DS1", coeff:26},{name:"Séance 1", coeff:10},{name:"DS2", coeff:26},{name:"Séance 2", coeff:10}] },
-                    { id: "R3_05", name: "R3.05 - PPP", coeffs: { UE31: 4, UE32: 4 }, exams: [{name:"Dossier", coeff:8}] },
-                    { id: "R3_10", name: "R3.10 - Physique Appliquée", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS1", coeff:13},{name:"DS2", coeff:13},{name:"Partiel TP", coeff:13},{name:"Séance", coeff:9}] },
-                    
-                    { id: "R3_06", name: "R3.06 - Automatique", coeffs: { UE33: 25, UE34: 25 }, exams: [{name:"DS", coeff:24},{name:"TP", coeff:24}] },
-                    { id: "R3_07", name: "R3.07 - Informatique Industrielle", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS", coeff:36},{name:"Partiel TP", coeff:36}] },
-                    { id: "R3_08", name: "R3.08 - Électronique Applied", coeffs: { UE33: 24, UE34: 24 }, exams: [{name:"DS", coeff:32},{name:"TP", coeff:16}] },
-                    { id: "R3_09", name: "R3.09 - Énergie (EME)", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS1", coeff:18},{name:"DS2", coeff:18},{name:"TP", coeff:18},{name:"Quiz", coeff:18}] },
-                    { id: "R3_11", name: "R3.11 - Maintenance", coeffs: { UE33: 8, UE34: 8 }, exams: [{name:"DS", coeff:16}] },
-                    { id: "R3_12", name: "R3.12 - Réseaux & Cybersécurité", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:12},{name:"Partiel TP", coeff:12},{name:"Séance", coeff:8}] },
-                    { id: "R3_EME_15", name: "R3.EME.15 - Supervision / Télégestion", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:24},{name:"TP", coeff:8}] },
-                    { id: "R3_AL", name: "R3.AL - Électronique Numérique", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:12},{name:"Partiel TP", coeff:20}] },
-                    
-                    { id: "SAE3_01", name: "SAE 3.01 - Projet LoRa", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"Séance", coeff:80},{name:"Rapport", coeff:50},{name:"Partiel TP", coeff:70}] },
-                    { id: "SAE3_02", name: "SAE 3.02 - Projet Four", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"Séance", coeff:70},{name:"Éval", coeff:65},{name:"DS", coeff:65}] }
+                    { id: "anglais", name: "Anglais", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS", coeff:18},{name:"Impl.", coeff:10},{name:"CO", coeff:10},{name:"Oral", coeff:10}] },
+                    { id: "culture", name: "Culture et communication", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"Note de séance", coeff:6},{name:"DS", coeff:18},{name:"Exposé", coeff:18}] },
+                    { id: "vie_entr", name: "Vie de l'entreprise", coeffs: { UE31: 8, UE32: 8 }, exams: [{name:"Séance", coeff:16}] },
+                    { id: "maths", name: "Outils Mathématiques et Logiciels", coeffs: { UE31: 36, UE32: 36 }, exams: [{name:"DS1", coeff:26},{name:"DS2", coeff:26},{name:"Séance", coeff:20}] },
+                    { id: "physique", name: "Physique appliquée", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS1", coeff:13},{name:"DS2", coeff:13},{name:"Partiel TP", coeff:13},{name:"séance", coeff:9}] },
+                    { id: "projet_perso", name: "Projet personnel et professionnel", coeffs: { UE31: 4, UE32: 4 }, exams: [{name:"Candidature", coeff:8}] },
+                    { id: "automatique", name: "Automatique", coeffs: { UE33: 25, UE34: 25 }, exams: [{name:"DS", coeff:25},{name:"TP", coeff:25}] },
+                    { id: "info_indus", name: "Informatique Industrielle", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS", coeff:36},{name:"Partiel TP", coeff:36}] },
+                    { id: "elec_ana", name: "Electronique (analogique)", coeffs: { UE33: 24, UE34: 24 }, exams: [{name:"DS", coeff:32},{name:"TP", coeff:16}] },
+                    { id: "energie", name: "Energie", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS1", coeff:18},{name:"DS2", coeff:18},{name:"TP", coeff:18},{name:"Quiz/WIMS", coeff:18}] },
+                    { id: "maintenance", name: "Maintenance", coeffs: { UE33: 8, UE34: 8 }, exams: [{name:"DS", coeff:16}] },
+                    { id: "reseaux", name: "Réseaux et cybersécurité", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:14},{name:"Partiel TP", coeff:14},{name:"Séance TP/TD", coeff:6}] },
+                    { id: "supervision", name: "Supervision/ Télégestion", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:26},{name:"TP", coeff:8}] },
+                    { id: "elec_num", name: "Electronique (numérique)", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:12},{name:"Partiel TP", coeff:20}] },
+                    { id: "sae_lora", name: "Saé LoRa", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"SEANCE", coeff:80},{name:"RAPPORT", coeff:50},{name:"PARTIEL TP", coeff:70}] },
+                    { id: "sae_four", name: "Saé Four", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"SEANCE", coeff:70},{name:"EVAL", coeff:65},{name:"DS", coeff:65}] }
                 ]
             },
             S4: {
                 ues: ["UE41", "UE42", "UE43", "UE44"],
-                labels: { UE41: "Concevoir la partie GEII", UE42: "Vérifier la partie GEII", UE43: "Assurer le MCO", UE44: "Installer (Parcours EME)" },
+                labels: { UE41: "Transversale 1", UE42: "Transversale 2", UE43: "Métier 1", UE44: "Métier 2" },
                 data: [
-                    { id: "R4_01", name: "R4.01 - Anglais", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"DS", coeff:18},{name:"Débat", coeff:9},{name:"CO", coeff:9}] },
-                    { id: "R4_02", name: "R4.02 - Culture et Communication", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"Éval", coeff:18},{name:"Vidéo", coeff:18}] },
-                    { id: "R4_03", name: "R4.03 - Vie de l'Entreprise", coeffs: { UE41: 14, UE42: 14 }, exams: [{name:"DS", coeff:28}] },
-                    { id: "R4_04", name: "R4.04 - Outils Mathématiques & Logiciels", coeffs: { UE41: 24, UE42: 24 }, exams: [{name:"DS1", coeff:24},{name:"Séance 2", coeff:6},{name:"DS2", coeff:18}] },
-                    { id: "R4_05", name: "R4.05 - PPP", coeffs: { UE41: 6, UE42: 6 }, exams: [{name:"Séance", coeff:8},{name:"Contrat", coeff:4}] },
-                    
-                    { id: "R4_IA", name: "R4.IA - Bases de l'IA pour l'IoT", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:48},{name:"Séance", coeff:24}] },
-                    { id: "R4_06", name: "R4.06 - Automatique", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
-                    { id: "R4_AL1", name: "R4.AL1 - Automatisme Spécialisé", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
-                    { id: "R4_AL2", name: "R4.AL2 - Électronique Spécialisée", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:36},{name:"TP", coeff:18}] },
-                    { id: "R4_AL3", name: "R4.AL3 - Électronique Numérique", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"Évaluation", coeff:54}] },
-                    { id: "R4_07", name: "R4.07 - Énergie Spécialisée", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"TP", coeff:21},{name:"Quiz/WIMS", coeff:21}] },
-                    
-                    { id: "SAE4_01", name: "SAE 4.01 - Projet Roue", coeffs: { UE41: 50, UE42: 50, UE43: 50, UE44: 50 }, exams: [{name:"DS1", coeff:68},{name:"Séance", coeff:68},{name:"Dossier", coeff:54}] },
-                    { id: "SAE4_PF", name: "SAE 4.PF - Portfolio", coeffs: { UE41: 2, UE42: 2, UE43: 2, UE44: 2 }, exams: [{name:"Séance", coeff:8}] },
-                    { id: "SAE4_STAGE", name: "SAE Stage - Stage Principal", coeffs: { UE41: 68, UE42: 68, UE43: 68, UE44: 68 }, exams: [{name:"Entreprise", coeff:90},{name:"Soutenance", coeff:85},{name:"Rapport Écrit", coeff:85},{name:"Suivi Intermédiaire", coeff:12}] }
+                    { id: "anglais_s4", name: "Anglais", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"DS", coeff:18},{name:"Débat", coeff:9},{name:"CO", coeff:9}] },
+                    { id: "culture_s4", name: "Culture et communication", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"Eval", coeff:18},{name:"Vidéo", coeff:18}] },
+                    { id: "vie_entr_s4", name: "Vie de l'entreprise", coeffs: { UE41: 14, UE42: 14 }, exams: [{name:"DS", coeff:28}] },
+                    { id: "maths_s4", name: "Outils Mathématiques et Logiciels", coeffs: { UE41: 24, UE42: 24 }, exams: [{name:"DS1", coeff:18},{name:"DS2", coeff:18},{name:"Note de séance", coeff:12}] },
+                    { id: "ppp_s4", name: "Projet personnel et professionnel", coeffs: { UE41: 6, UE42: 6 }, exams: [{name:"Séance", coeff:8},{name:"Recherche de contrat pour le BUT3", coeff:4}] },
+                    { id: "ia_iot", name: "Bases de l'IA pour l'IoT", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:48},{name:"Note de séance", coeff:24}] },
+                    { id: "energie_spec", name: "Energie spécialisée", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:30},{name:"TP", coeff:21},{name:"Quiz/WIMS", coeff:21}] },
+                    { id: "auto_s4", name: "Automatique", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
+                    { id: "auto_spec", name: "Automatisme spécialisé", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
+                    { id: "elec_spec", name: "Electronique spécialisée", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:36},{name:"TP", coeff:18}] },
+                    { id: "elec_num_s4", name: "Electronique (numérique)", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"Evaluation", coeff:54}] },
+                    { id: "sae_roue", name: "Saé Roue", coeffs: { UE43: 50, UE44: 50, UE41: 50, UE42: 50 }, exams: [{name:"DS1", coeff:68},{name:"SEANCE", coeff:68},{name:"DOSSIER", coeff:54}] },
+                    { id: "stage", name: "Stage", coeffs: { UE41: 68, UE42: 68, UE43: 68, UE44: 68 }, exams: [{name:"Entreprise", coeff:90},{name:"Soutenance orale", coeff:85},{name:"Rapport", coeff:85},{name:"Recherche de Stage", coeff:12}] },
+                    { id: "portfolio", name: "Portfolio", coeffs: { UE41: 2, UE42: 2, UE43: 2, UE44: 2 }, exams: [{name:"Séance", coeff:8}] }
                 ]
             }
         };
 
         const REGROUPEMENTS = [
-            { id: "R1", label: "BLOC 1 : Concevoir", s3: "UE31", s4: "UE41" },
-            { id: "R2", label: "BLOC 2 : Vérifier", s3: "UE32", s4: "UE42" },
-            { id: "R3", label: "BLOC 3 : Assurer MCO", s3: "UE33", s4: "UE43" },
-            { id: "R4", label: "BLOC 4 : Installer", s3: "UE34", s4: "UE44" }
+            { id: "R1", label: "Regroupement 1", s3: "UE31", s4: "UE41" },
+            { id: "R2", label: "Regroupement 2", s3: "UE32", s4: "UE42" },
+            { id: "R3", label: "Regroupement 3", s3: "UE33", s4: "UE43" },
+            { id: "R4", label: "Regroupement 4", s3: "UE34", s4: "UE44" }
         ];
 
         let currentSemester = "S3";
-        let grades = JSON.parse(localStorage.getItem('but2_grades_v2') || '{}');
+        let grades = JSON.parse(localStorage.getItem('but2_grades') || '{}');
 
-        function save() { localStorage.setItem('but2_grades_v2', JSON.stringify(grades)); }
+        function save() { localStorage.setItem('but2_grades', JSON.stringify(grades)); }
         function changeSemester(sem) { currentSemester = sem; init(); }
         function toggleModal(modalId) { 
-            document.getElementById(modalId).classList.toggle('hidden');
+            const el = document.getElementById(modalId);
+            el.classList.toggle('hidden');
             document.body.classList.toggle('modal-active');
         }
 
@@ -254,8 +263,8 @@
         function calculate() {
             const ueAverages = {};
             const sem = CONFIG[currentSemester];
-            const subjectAvgs = {};
             
+            const subjectAvgs = {};
             sem.data.forEach(sub => {
                 let weighted = 0, weights = 0;
                 const subGrades = grades[sub.id] || {};
@@ -269,15 +278,9 @@
                 const card = document.getElementById(`card-${sub.id}`);
                 if (el) {
                     el.textContent = avg !== null ? avg.toFixed(2) : "--";
-                    el.className = `text-lg font-bold ${avg !== null ? (avg < 10 ? 'text-red-400 neon-text-red' : 'text-blue-400 neon-text-blue') : 'text-slate-600'}`;
+                    el.className = `text-lg font-bold ${avg !== null ? (avg < 10 ? 'text-red-500' : 'text-blue-600') : 'text-slate-300'}`;
                 }
-                if (card) {
-                    if (avg !== null && avg < 8) {
-                        card.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-                    } else {
-                        card.style.borderColor = '';
-                    }
-                }
+                if (card) card.style.borderColor = avg !== null && avg < 8 ? '#fecaca' : '';
             });
 
             sem.ues.forEach(ue => {
@@ -296,7 +299,7 @@
             const globalAvg = semTotalWeights > 0 ? semTotalWeighted / semTotalWeights : null;
             const gEl = document.getElementById('global-average');
             gEl.textContent = globalAvg !== null ? globalAvg.toFixed(2) : "--";
-            gEl.className = `text-3xl font-black ${globalAvg !== null ? (globalAvg < 10 ? 'text-red-400 neon-text-red' : 'text-blue-400 neon-text-blue') : 'text-slate-600'}`;
+            gEl.className = `text-xl font-black ${globalAvg !== null ? (globalAvg < 10 ? 'text-red-500' : 'text-blue-600') : 'text-slate-300'}`;
 
             const regAverages = {};
             REGROUPEMENTS.forEach(reg => {
@@ -312,7 +315,7 @@
                 const regVal = document.getElementById(`reg-val-${reg.id}`);
                 if (regVal) {
                     regVal.textContent = combined !== null ? combined.toFixed(2) : "--";
-                    regVal.className = `text-xl font-black ${combined !== null && combined < 10 ? 'text-red-400 neon-text-red' : 'text-emerald-400 neon-text-emerald'}`;
+                    regVal.className = `text-xl font-bold ${combined !== null && combined < 10 ? 'text-red-600' : 'text-emerald-600'}`;
                 }
             });
 
@@ -341,12 +344,12 @@
             const container = document.getElementById('ue-summary');
             container.innerHTML = CONFIG[currentSemester].ues.map(ue => {
                 const avg = avgs[ue];
-                const textColor = avg === null ? 'text-slate-600' : (avg < 10 ? 'text-red-400 neon-text-red' : 'text-blue-400 neon-text-blue');
+                const color = avg === null ? 'slate-300' : (avg < 10 ? 'red-600' : 'blue-600');
                 return `
-                    <div class="neon-card p-4 rounded-xl border border-slate-800">
-                        <div class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">${ue}</div>
-                        <div class="text-xs text-slate-400 mb-2 truncate font-medium">${CONFIG[currentSemester].labels[ue]}</div>
-                        <div class="text-2xl font-black ${textColor}">${avg !== null ? avg.toFixed(2) : '--'}</div>
+                    <div class="glass-card p-4 rounded-xl border shadow-sm transition-all hover:border-blue-300">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">${ue}</div>
+                        <div class="text-[11px] text-slate-500 mb-2 truncate font-medium">${CONFIG[currentSemester].labels[ue]}</div>
+                        <div class="text-2xl font-black text-${color} leading-none">${avg !== null ? avg.toFixed(2) : '--'}</div>
                     </div>
                 `;
             }).join('');
@@ -362,20 +365,20 @@
             const allRegsFilled = regs.every(v => v !== null);
 
             if (anyRegBelow10) {
-                statusText.textContent = "ALERTE BLOC CRITIQUE : Au moins un pôle combiné annuel est inférieur à 10.00.";
-                statusText.className = "text-md font-bold text-red-400 neon-text-red";
-                statusIcon.innerHTML = "✖"; statusIcon.className = "h-12 w-12 rounded-xl flex items-center justify-center bg-red-950/50 text-red-400 border border-red-800 font-black cursor-pointer shadow-lg";
-                card.className = "mb-8 p-6 rounded-2xl border border-red-900/50 bg-red-950/20 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+                statusText.textContent = "Validation IMPOSSIBLE : Un regroupement est inférieur à 10.";
+                statusText.className = "text-xl font-bold text-red-600";
+                statusIcon.innerHTML = "✖"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-red-100 text-red-600 font-bold border-2 border-red-200";
+                card.className = "mb-8 p-6 rounded-xl border-2 border-red-200 bg-red-50/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
             } else if (allRegsFilled) {
-                statusText.textContent = "MATRICE VALIDÉE : L'ensemble des 4 pôles d'apprentissage sont validés.";
-                statusText.className = "text-md font-bold text-emerald-400 neon-text-emerald";
-                statusIcon.innerHTML = "✔"; statusIcon.className = "h-12 w-12 rounded-xl flex items-center justify-center bg-emerald-950/50 text-emerald-400 border border-emerald-800 font-black cursor-pointer shadow-lg";
-                card.className = "mb-8 p-6 rounded-2xl border border-emerald-900/50 bg-emerald-950/20 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+                statusText.textContent = "Validation ADMISE : Tous les regroupements sont validés.";
+                statusText.className = "text-xl font-bold text-emerald-600";
+                statusIcon.innerHTML = "✔"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold border-2 border-emerald-200";
+                card.className = "mb-8 p-6 rounded-xl border-2 border-emerald-200 bg-emerald-50/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
             } else {
-                statusText.textContent = "Calcul dynamique en attente de flux de données de notes...";
-                statusText.className = "text-md font-medium text-slate-400 italic";
-                statusIcon.innerHTML = "?"; statusIcon.className = "h-12 w-12 rounded-xl flex items-center justify-center bg-slate-800 text-slate-400 border border-slate-700 font-bold cursor-pointer";
-                card.className = "mb-8 p-6 rounded-2xl border border-slate-800 bg-slate-900/50 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+                statusText.textContent = "En attente de notes pour calcul final...";
+                statusText.className = "text-xl font-semibold text-slate-400 italic";
+                statusIcon.innerHTML = "?"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-white text-slate-400 border-2 border-slate-200";
+                card.className = "mb-8 p-6 rounded-xl border border-slate-200 glass-card shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
             }
         }
 
@@ -385,34 +388,34 @@
             
             const regContainer = document.getElementById('regroupements-container');
             regContainer.innerHTML = REGROUPEMENTS.map(reg => `
-                <div class="neon-card border p-4 rounded-xl flex items-center justify-between border-slate-800">
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between shadow-sm hover:border-blue-300 transition-all">
                     <div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">${reg.label}</div>
-                        <div class="text-[10px] text-blue-500 font-mono">${reg.s3} + ${reg.s4}</div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${reg.label}</div>
+                        <div class="text-xs text-slate-500 font-medium">${reg.s3} <span class="text-slate-300 mx-1">/</span> ${reg.s4}</div>
                     </div>
-                    <div id="reg-val-${reg.id}" class="text-xl font-black text-slate-700">--</div>
+                    <div id="reg-val-${reg.id}" class="text-2xl font-black text-slate-300">--</div>
                 </div>
             `).join('');
 
             CONFIG[currentSemester].data.forEach(sub => {
                 const card = document.createElement('div');
                 card.id = `card-${sub.id}`;
-                card.className = "neon-card rounded-xl p-5 border border-slate-800/80 fade-in";
+                card.className = "glass-card rounded-xl p-6 shadow-sm fade-in hover:shadow-md transition-all";
                 
                 const examsHtml = sub.exams.map((ex, i) => `
-                    <div class="flex-1 min-w-[120px]">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider truncate">${ex.name} <span class="text-blue-500 font-mono text-[9px]">x${ex.coeff}</span></label>
-                        <input type="number" step="0.01" value="${(grades[sub.id] && grades[sub.id][i]) || ''}" 
+                    <div class="flex-1 min-w-[100px]">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 truncate tracking-widest">${ex.name} <span class="text-slate-300">x${ex.coeff}</span></label>
+                        <input type="number" step="0.1" value="${(grades[sub.id] && grades[sub.id][i]) || ''}" 
                             oninput="handleInput('${sub.id}', ${i}, this.value)"
-                            placeholder="0.00"
-                            class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-mono">
+                            placeholder="0.0"
+                            class="w-full bg-white/80 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
                     </div>
                 `).join('');
 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-sm text-slate-200 tracking-wide">${sub.name}</h3>
-                        <div id="avg-${sub.id}" class="text-md font-black text-slate-700">--</div>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-black text-slate-800 tracking-tight">${sub.name}</h3>
+                        <div id="avg-${sub.id}" class="text-xl font-black text-slate-300">--</div>
                     </div>
                     <div class="flex flex-wrap gap-4">${examsHtml}</div>
                 `;
@@ -421,91 +424,88 @@
             calculate();
         }
 
-        function resetData() { if(confirm("Voulez-vous réinitialiser l'intégralité de vos notes simulées ?")) { grades = {}; save(); init(); } }
+        function resetData() { if(confirm("Effacer TOUTES les notes (S3 et S4) ?")) { grades = {}; save(); init(); } }
         document.addEventListener('DOMContentLoaded', init);
 
         // ==========================================
-        // CONFIGURATION ET MOTEUR GRAPHIQUE THREE.JS (ROBOT & GRID 3D)
+        // ARRIÈRE-PLAN CHIC : VAGUE DE FLUIDE SOIE 3D
         // ==========================================
-        let scene, camera, renderer, grid, robotArm, robotForearm, robotHead;
+        let scene, camera, renderer, particleSystem;
         let mouseX = 0, mouseY = 0;
+        const count = 2500; // Nombre de micro-particules pour un effet dense et soyeux
 
         function init3D() {
             const container = document.getElementById('canvas-3d-container');
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x0b0f19, 0.015);
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 5, 12);
-            camera.lookAt(0, 2, 0);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.set(0, 15, 35);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // Lumières cyber
-            const ambientLight = new THREE.AmbientLight(0x111827, 2);
-            scene.add(ambientLight);
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
 
-            const directionalLight = new THREE.DirectionalLight(0x3b82f6, 1.5);
-            directionalLight.position.set(5, 10, 5);
-            scene.add(directionalLight);
+            const color1 = new THREE.Color('#fef08a'); // Doré très doux
+            const color2 = new THREE.Color('#60a5fa'); // Bleu azur dilué
+            const colorBase = new THREE.Color('#ffffff');
 
-            const pointLight = new THREE.PointLight(0x06b6d4, 2, 30);
-            pointLight.position.set(-5, 3, 2);
-            scene.add(pointLight);
+            let k = 0;
+            for (let i = 0; i < count; i++) {
+                // Distribution en nappe large
+                const x = (Math.random() - 0.5) * 70;
+                const z = (Math.random() - 0.5) * 70;
+                const y = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 2;
 
-            // Grille Technologique au sol
-            const size = 60;
-            const divisions = 40;
-            grid = new THREE.GridHelper(size, divisions, 0x1e293b, 0x0f172a);
-            grid.position.y = -2;
-            scene.add(grid);
+                positions[k] = x;
+                positions[k + 1] = y;
+                positions[k + 2] = z;
 
-            // Construction d'un automate Robot en Mesh Géométriques (Esprit GEII)
-            const robotGroup = new THREE.Group();
-            robotGroup.position.set(4, -2, -2); // Positionné sur la droite en arrière plan
+                // Dégradé de couleur chic mélangé
+                let mixedColor = colorBase.clone();
+                if (Math.random() > 0.6) {
+                    mixedColor.lerp(color1, Math.random() * 0.4);
+                } else if (Math.random() > 0.6) {
+                    mixedColor.lerp(color2, Math.random() * 0.3);
+                }
 
-            // Base du robot
-            const baseGeo = new THREE.CylinderGeometry(1.2, 1.5, 0.6, 16);
-            const cyberMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.8, wireframe: false });
-            const neonBlueMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, emissive: 0x1d4ed8, roughness: 0.2 });
-            
-            const base = new THREE.Mesh(baseGeo, cyberMat);
-            robotGroup.add(base);
+                colors[k] = mixedColor.r;
+                colors[k + 1] = mixedColor.g;
+                colors[k + 2] = mixedColor.b;
 
-            // Premier Segment de bras
-            robotArm = new THREE.Group();
-            robotArm.position.y = 0.3;
-            const armSegGeo = new THREE.CylinderGeometry(0.25, 0.3, 3, 12);
-            const armSeg = new THREE.Mesh(armSegGeo, cyberMat);
-            armSeg.position.y = 1.5;
-            robotArm.add(armSeg);
-            
-            const jointGeo = new THREE.SphereGeometry(0.4, 16, 16);
-            const joint1 = new THREE.Mesh(jointGeo, neonBlueMat);
-            joint1.position.y = 3;
-            robotArm.add(joint1);
-            base.add(robotArm);
+                k += 3;
+            }
 
-            // Deuxième segment articulé (Avant-bras)
-            robotForearm = new THREE.Group();
-            robotForearm.position.y = 3;
-            const forearmGeo = new THREE.BoxGeometry(0.4, 2.5, 0.4);
-            const forearmMesh = new THREE.Mesh(forearmGeo, cyberMat);
-            forearmMesh.position.y = 1.25;
-            robotForearm.add(forearmMesh);
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-            // Tête de capteur optique
-            const headGeo = new THREE.ConeGeometry(0.3, 0.7, 4);
-            robotHead = new THREE.Mesh(headGeo, neonBlueMat);
-            robotHead.position.y = 2.5;
-            robotHead.rotation.x = Math.PI / 2;
-            robotForearm.add(robotHead);
+            // Création d'une texture circulaire douce sans bords durs
+            const canvas = document.createElement('canvas');
+            canvas.width = 32; canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.3, 'rgba(240, 244, 255, 0.7)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 32, 32);
+            const texture = new THREE.CanvasTexture(canvas);
 
-            robotArm.add(robotForearm);
-            scene.add(robotGroup);
+            const material = new THREE.PointsMaterial({
+                size: 0.55,
+                map: texture,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.NormalBlending,
+                depthWrite: false
+            });
+
+            particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
 
             window.addEventListener('resize', onWindowResize);
             document.addEventListener('mousemove', onMouseMove);
@@ -525,31 +525,35 @@
 
         function animate() {
             requestAnimationFrame(animate);
+            const time = Date.now() * 0.0004;
 
-            const time = Date.now() * 0.001;
-
-            // Ondulation de la grille au sol
-            grid.position.z = (time * 0.5) % (60 / 40);
-
-            // Animation cinématique du robot basée sur la souris
-            if (robotArm && robotForearm) {
-                robotArm.rotation.y = THREE.MathUtils.lerp(robotArm.rotation.y, mouseX * 0.8, 0.05);
-                robotArm.rotation.z = THREE.MathUtils.lerp(robotArm.rotation.z, Math.sin(time) * 0.05, 0.05);
-                robotForearm.rotation.x = THREE.MathUtils.lerp(robotForearm.rotation.x, (mouseY * 0.5) + Math.PI/6, 0.05);
-                robotHead.rotation.z += 0.02;
+            if (particleSystem) {
+                const positions = particleSystem.geometry.attributes.position.array;
+                let k = 0;
+                for (let i = 0; i < count; i++) {
+                    const x = positions[k];
+                    const z = positions[k + 2];
+                    
+                    // Équation mathématique créant une ondulation fluide de type tissu satiné ou eau calme
+                    positions[k + 1] = Math.sin(x * 0.08 + time) * Math.cos(z * 0.07 + time) * 3 
+                                      + Math.sin((x + z) * 0.04 + time * 1.5) * 1.2;
+                    k += 3;
+                }
+                particleSystem.geometry.attributes.position.needsUpdate = true;
+                
+                // Rotation très délicate de l'ensemble
+                particleSystem.rotation.y = time * 0.05;
             }
 
-            // Déplacement subtil de la caméra
-            camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouseX * 1.5, 0.03);
-            camera.position.y = THREE.MathUtils.lerp(camera.position.y, 5 + (mouseY * 0.8), 0.03);
-            camera.lookAt(0, 1, 0);
+            // Mouvement de caméra amorti suivant doucement la souris pour donner de la profondeur (effet parallaxe discret)
+            camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouseX * 6, 0.02);
+            camera.position.y = THREE.MathUtils.lerp(camera.position.y, 16 + (mouseY * 4), 0.02);
+            camera.lookAt(0, 0, 0);
 
             renderer.render(scene, camera);
         }
 
-        window.onload = () => {
-            init3D();
-        };
+        window.addEventListener('load', init3D);
     </script>
 </body>
 </html>
