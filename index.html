@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/PNG" href="Pronote.PNG">
-    <link rel="apple-touch-icon" href="Pronote.PNG">
+    <link class="apple-touch-icon" href="Pronote.PNG">
     <title>Simulateur BUT2 GEII - S3 & S4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -12,8 +12,9 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc;
+            background-color: #030712; 
             overflow-x: hidden;
+            color: #f3f4f6;
         }
         #canvas-3d-container {
             position: fixed;
@@ -23,7 +24,7 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.85;
+            opacity: 0.6; 
         }
         .interactive-ui {
             position: relative;
@@ -32,67 +33,74 @@
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         body.modal-active { overflow: hidden; }
+        
         .glass-card {
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.7);
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
     </style>
 </head>
-<body class="text-slate-900 min-h-screen pb-20">
+<body class="min-h-screen pb-20">
 
     <div id="canvas-3d-container"></div>
 
-    <header class="interactive-ui bg-white/80 border-b border-slate-200 sticky top-0 z-50 shadow-sm backdrop-blur-md">
+    <header class="interactive-ui bg-gray-950/40 border-b border-white/5 sticky top-0 z-50 shadow-2xl backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-12 w-auto object-contain">
-                <select id="semester-selector" onchange="changeSemester(this.value)" class="bg-slate-100/80 border-none rounded-lg px-3 py-1.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 cursor-pointer hover:bg-slate-200 transition-colors outline-none">
-                    <option value="S3">Semestre 3</option>
-                    <option value="S4">Semestre 4</option>
+                <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-12 w-auto object-contain brightness-110">
+                <select id="semester-selector" onchange="changeSemester(this.value)" class="bg-white/10 border border-white/10 rounded-xl px-3 py-1.5 text-sm font-bold text-white focus:ring-2 focus:ring-purple-500 cursor-pointer hover:bg-white/20 transition-all outline-none">
+                    <option value="S3" class="bg-gray-900 text-white">Semestre 3</option>
+                    <option value="S4" class="bg-gray-900 text-white">Semestre 4</option>
                 </select>
             </div>
             <div class="flex items-center gap-3 ml-auto h-9">
-                <button onclick="resetData()" class="bg-red-50 text-red-600 px-4 rounded-lg text-[9px] font-black hover:bg-red-100 transition-colors uppercase tracking-widest border border-red-100 border-b-2 border-b-red-200 h-full whitespace-nowrap">Réinitialiser</button>
+                <button onclick="resetData()" class="bg-red-500/10 text-red-400 px-4 rounded-xl text-[10px] font-black hover:bg-red-500/20 transition-colors uppercase tracking-widest border border-red-500/20 h-full whitespace-nowrap">Réinitialiser</button>
             </div>
         </div>
     </header>
 
     <main class="interactive-ui max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div id="jury-card" class="mb-8 p-6 rounded-xl border-2 glass-card shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500">
+        <div id="jury-card" class="mb-8 p-6 rounded-2xl border glass-card shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500">
             <div class="text-center md:text-left flex-1">
-                <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Statut de validation (BUT2)</h2>
-                <p id="jury-status-text" class="text-xl font-bold text-slate-300 italic mb-3">En attente de notes...</p>
+                <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Statut de validation (BUT2)</h2>
+                <p id="jury-status-text" class="text-xl font-bold text-gray-500 italic mb-3">En attente de notes...</p>
                 
-                <div class="inline-flex flex-col items-start bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2">
-                    <span class="text-[9px] text-blue-400 uppercase font-black tracking-widest leading-none mb-1">Moyenne Globale du semestre</span>
-                    <span id="global-average" class="text-2xl font-black text-blue-600 leading-none">--</span>
+                <div class="inline-flex flex-col items-start bg-purple-500/10 border border-purple-500/20 rounded-xl px-4 py-2">
+                    <span class="text-[9px] text-purple-400 uppercase font-black tracking-widest leading-none mb-1">Moyenne Globale du semestre</span>
+                    <span id="global-average" class="text-2xl font-black text-purple-400 leading-none">--</span>
                 </div>
             </div>
-            <div id="jury-icon" onclick="toggleModal('modal-validation-info')" class="h-16 w-16 rounded-full flex items-center justify-center bg-white/50 text-slate-400 text-2xl font-bold border-2 border-slate-200 cursor-pointer hover:bg-white hover:border-blue-200 hover:text-blue-500 transition-all shadow-sm">
+            <div id="jury-icon" onclick="toggleModal('modal-validation-info')" class="h-14 w-14 rounded-full flex items-center justify-center bg-white/5 text-gray-400 text-xl font-bold border border-white/10 cursor-pointer hover:bg-white/10 hover:border-purple-500/50 hover:text-purple-400 transition-all shadow-md">
                 ?
             </div>
         </div>
 
         <div id="modal-validation-info" class="hidden fixed inset-0 z-[100] overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
-                <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-validation-info')"></div>
-                <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8 relative z-50">
-                    <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">🎓 Comprendre la Validation (BUT2)</h3>
-                    <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+                <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleModal('modal-validation-info')"></div>
+                <div class="inline-block bg-gray-900 border border-white/10 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8 relative z-50 text-gray-300">
+                    <h3 class="text-xl font-black text-white mb-4 tracking-tight">🎓 Comprendre la Validation (BUT2)</h3>
+                    <div class="space-y-4 text-sm leading-relaxed">
                         <p>Le statut de validation indique si vous remplissez les conditions pour valider votre année de BUT2 GEII :</p>
                         <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Moyenne de Regroupement :</strong> Vous devez avoir au moins <span class="font-bold text-blue-600">10/20</span> de moyenne sur chaque pôle de compétences (S3 + S4 combinés).</li>
+                            <li><strong>Moyenne de Regroupement :</strong> Vous devez avoir au moins <span class="font-bold text-purple-400">10/20</span> de moyenne sur chaque pôle de compétences (S3 + S4 combinés).</li>
                             <li><strong>Compensation :</strong> Les notes se compensent entre le S3 et le S4 au sein d'un même pôle.</li>
                             <li><strong>Calcul Progressif :</strong> Tant que toutes les notes ne sont pas saisies, le simulateur affiche une estimation basée sur vos résultats actuels.</li>
                         </ul>
-                        <p class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-blue-700 text-xs italic">
+                        <p class="bg-purple-500/10 p-3 rounded-lg border border-purple-500/20 text-purple-300 text-xs italic">
                             Note : Ce calcul est basé sur les Modalités de Contrôle des Connaissances (MCC) officielles du BUT GEII.
                         </p>
                     </div>
-                    <button onclick="toggleModal('modal-validation-info')" class="mt-8 w-full bg-blue-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-white hover:bg-blue-700 transition-colors">Fermer</button>
+                    <button onclick="toggleModal('modal-validation-info')" class="mt-8 w-full bg-purple-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-white hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/30">Fermer</button>
                 </div>
             </div>
         </div>
@@ -100,68 +108,65 @@
         <div id="ue-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
 
         <div class="mb-4">
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Pôles de Compétences (S3+S4)</h2>
+            <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Pôles de Compétences (S3+S4)</h2>
             <div id="regroupements-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
         <div id="subjects-container" class="space-y-6 mt-8"></div>
     </main>
 
-    <footer class="interactive-ui bg-white/80 border-t border-slate-200 pt-12 pb-8 mt-12 backdrop-blur-md">
+    <footer class="interactive-ui bg-gray-950/40 border-t border-white/5 pt-12 pb-8 mt-12 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div class="flex flex-col items-center gap-6 mb-12">
-                <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-24 w-auto object-contain grayscale hover:grayscale-0 transition-all">
-                <p class="text-slate-500 text-sm leading-relaxed max-w-md">
-                    Créé par un étudiant <span class="font-bold text-blue-600">GEII 2ème année</span>.<br>
-                    Année universitaire <span class="font-bold">2025 / 2026</span>.
+                <img src="IMG_2214.jpeg" alt="Logo IUT" class="h-20 w-auto object-contain opacity-50 hover:opacity-100 transition-all duration-300">
+                <p class="text-gray-400 text-sm leading-relaxed max-w-md">
+                    Créé par un étudiant <span class="font-bold text-purple-400">GEII 2ème année</span>.<br>
+                    Année universitaire <span class="font-bold text-white">2025 / 2026</span>.
                 </p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-2xl mx-auto">
                 <div class="flex flex-col gap-3">
-                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Informations</h3>
+                    <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest">Informations</h3>
                     <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
-                        <button onclick="toggleModal('modal-tutorial')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">✨ Tutoriel</button>
-                        <button onclick="toggleModal('modal-cookies')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">🍪 Cookies</button>
-                        <button onclick="toggleModal('modal-cgu')" class="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium">⚖️ Mentions Légales</button>
+                        <button onclick="toggleModal('modal-tutorial')" class="text-gray-400 hover:text-purple-400 transition-colors text-sm font-medium">✨ Tutoriel</button>
+                        <button onclick="toggleModal('modal-cookies')" class="text-gray-400 hover:text-purple-400 transition-colors text-sm font-medium">🍪 Cookies</button>
+                        <button onclick="toggleModal('modal-cgu')" class="text-gray-400 hover:text-purple-400 transition-colors text-sm font-medium">⚖️ Mentions Légales</button>
                     </div>
                 </div>
                 <div class="flex flex-col gap-3">
-                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Contact</h3>
+                    <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest">Contact</h3>
                     <div class="flex justify-center">
-                        <a href="mailto:hamza.moussa@etu.univ-cotedazur.fr" class="group flex items-center justify-center bg-blue-50/50 hover:bg-blue-600 w-12 h-12 rounded-2xl border-2 border-blue-100 transition-all overflow-hidden relative">
-                            <div class="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                            <span class="text-2xl relative z-10 transition-transform group-hover:scale-110 duration-300">✉️</span>
+                        <a href="mailto:hamza.moussa@etu.univ-cotedazur.fr" class="group flex items-center justify-center bg-white/5 hover:bg-purple-600 w-12 h-12 rounded-2xl border border-white/10 hover:border-purple-500 transition-all duration-300">
+                            <span class="text-xl group-hover:scale-110 transition-transform duration-300">✉️</span>
                         </a>
                     </div>
                 </div>
             </div>
             
-            <div class="border-t border-slate-100 pt-8">
-                <p class="text-slate-400 text-xs tracking-wide uppercase font-bold opacity-60">Simulateur non-officiel • Université Côte d'Azur • IUT Nice Côte d'Azur</p>
+            <div class="border-t border-white/5 pt-8">
+                <p class="text-gray-500 text-xs tracking-wide uppercase font-bold opacity-60">Simulateur non-officiel • Université Côte d'Azur • IUT Nice Côte d'Azur</p>
             </div>
         </div>
     </footer>
 
     <div id="modal-tutorial" class="hidden fixed inset-0 z-[100] overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" onclick="toggleModal('modal-tutorial')">
-                <div class="absolute inset-0 bg-slate-900 opacity-75"></div>
-            </div>
-            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-6 pt-6 pb-6">
-                    <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">✨ Comment ça marche ?</h3>
-                    <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleModal('modal-tutorial')"></div>
+            <div class="inline-block bg-gray-900 border border-white/10 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full">
+                <div class="p-6 text-gray-300">
+                    <h3 class="text-xl font-black text-white mb-4 tracking-tight">✨ Comment ça marche ?</h3>
+                    <div class="space-y-4 text-sm leading-relaxed">
                         <p>L'intérêt de ce site est de te permettre de suivre ton évolution tout au long de l'année et d'anticiper tes résultats du BUT2.</p>
                         <ul class="list-disc pl-5 space-y-2">
                             <li><strong>Saisie :</strong> Remplis tes notes au fur et à mesure. Si une note n'est pas encore connue, laisse le champ vide, elle sera ignorée du calcul.</li>
                             <li><strong>Calcul :</strong> Le site calcule automatiquement tes moyennes de matières, d'UEs et de regroupements selon les coefficients officiels.</li>
-                            <li><strong>Validation :</strong> Le règlement BUT2 impose d'avoir au moins <span class="font-bold text-red-500">10 de moyenne</span> sur chaque regroupement d'UE (S3+S4) pour valider l'année.</li>
+                            <li><strong>Validation :</strong> Le règlement BUT2 impose d'avoir au moins <span class="font-bold text-purple-400">10 de moyenne</span> sur chaque regroupement d'UE (S3+S4) pour valider l'année.</li>
                         </ul>
                     </div>
                 </div>
-                <div class="bg-slate-50 px-6 py-4 flex justify-end">
-                    <button onclick="toggleModal('modal-tutorial')" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest">J'ai compris</button>
+                <div class="bg-gray-950/50 px-6 py-4 flex justify-end border-t border-white/5">
+                    <button onclick="toggleModal('modal-tutorial')" class="bg-purple-600 text-white px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-purple-700 transition-colors">J'ai compris</button>
                 </div>
             </div>
         </div>
@@ -169,22 +174,22 @@
 
     <div id="modal-cookies" class="hidden fixed inset-0 z-[100] overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
-            <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-cookies')"></div>
-            <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
-                <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">🍪 Cookies & Données</h3>
-                <p class="text-slate-600 text-sm leading-relaxed">Ce site fonctionne à <span class="font-bold">100% en local</span>. Aucune donnée n'est envoyée sur un serveur. Tes notes sont stockées uniquement dans ton navigateur via le "localStorage".</p>
-                <button onclick="toggleModal('modal-cookies')" class="mt-8 w-full bg-slate-100 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-slate-600">Fermer</button>
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleModal('modal-cookies')"></div>
+            <div class="inline-block bg-gray-900 border border-white/10 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8 text-gray-300">
+                <h3 class="text-xl font-black text-white mb-4 tracking-tight">🍪 Cookies & Données</h3>
+                <p class="text-sm leading-relaxed">Ce site fonctionne à <span class="font-bold text-white">100% en local</span>. Aucune donnée n'est envoyée sur un serveur. Tes notes sont stockées uniquement dans ton navigateur via le "localStorage".</p>
+                <button onclick="toggleModal('modal-cookies')" class="mt-8 w-full bg-white/5 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-white/10 border border-white/5 transition-colors">Fermer</button>
             </div>
         </div>
     </div>
 
     <div id="modal-cgu" class="hidden fixed inset-0 z-[100] overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 text-center sm:p-0">
-            <div class="fixed inset-0 bg-slate-900 opacity-75" onclick="toggleModal('modal-cgu')"></div>
-            <div class="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8">
-                <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">⚖️ Mentions Légales</h3>
-                <p class="text-slate-600 text-sm italic leading-relaxed">Ce simulateur est un outil étudiant non-officiel. Les calculs sont donnés à titre indicatif et ne remplacent en aucun cas le jury officiel de l'IUT Nice Côte d'Azur.</p>
-                <button onclick="toggleModal('modal-cgu')" class="mt-8 w-full bg-slate-100 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-slate-600">Fermer</button>
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleModal('modal-cgu')"></div>
+            <div class="inline-block bg-gray-900 border border-white/10 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-8 text-gray-300">
+                <h3 class="text-xl font-black text-white mb-4 tracking-tight">⚖️ Mentions Légales</h3>
+                <p class="text-sm italic leading-relaxed">Ce simulateur est un outil étudiant non-officiel. Les calculs sont donnés à titre indicatif et ne remplacent en aucun cas le jury officiel de l'IUT Nice Côte d'Azur.</p>
+                <button onclick="toggleModal('modal-cgu')" class="mt-8 w-full bg-white/5 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-white/10 border border-white/5 transition-colors">Fermer</button>
             </div>
         </div>
     </div>
@@ -223,6 +228,7 @@
                     { id: "maths_s4", name: "Outils Mathématiques et Logiciels", coeffs: { UE41: 24, UE42: 24 }, exams: [{name:"DS1", coeff:18},{name:"DS2", coeff:18},{name:"Note de séance", coeff:12}] },
                     { id: "ppp_s4", name: "Projet personnel et professionnel", coeffs: { UE41: 6, UE42: 6 }, exams: [{name:"Séance", coeff:8},{name:"Recherche de contrat pour le BUT3", coeff:4}] },
                     { id: "ia_iot", name: "Bases de l'IA pour l'IoT", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:48},{name:"Note de séance", coeff:24}] },
+                    // Injecté de manière conforme ici : DS coeff 30 réintroduit pour Energie Spécialisée S4
                     { id: "energie_spec", name: "Energie spécialisée", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:30},{name:"TP", coeff:21},{name:"Quiz/WIMS", coeff:21}] },
                     { id: "auto_s4", name: "Automatique", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
                     { id: "auto_spec", name: "Automatisme spécialisé", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
@@ -278,9 +284,9 @@
                 const card = document.getElementById(`card-${sub.id}`);
                 if (el) {
                     el.textContent = avg !== null ? avg.toFixed(2) : "--";
-                    el.className = `text-lg font-bold ${avg !== null ? (avg < 10 ? 'text-red-500' : 'text-blue-600') : 'text-slate-300'}`;
+                    el.className = `text-lg font-bold ${avg !== null ? (avg < 10 ? 'text-red-400' : 'text-purple-400') : 'text-gray-600'}`;
                 }
-                if (card) card.style.borderColor = avg !== null && avg < 8 ? '#fecaca' : '';
+                if (card) card.style.borderColor = avg !== null && avg < 8 ? 'rgba(239, 68, 68, 0.4)' : '';
             });
 
             sem.ues.forEach(ue => {
@@ -296,10 +302,10 @@
 
             let semTotalWeighted = 0, semTotalWeights = 0;
             Object.values(ueAverages).forEach(val => { if(val !== null) { semTotalWeighted += val; semTotalWeights++; } });
-            const globalAvg = semTotalWeights > 0 ? semTotalWeighted / semTotalWeights : null;
+            const globalAvg = semTotalWeights > 0 ? semTotalWeighted / semTotalWeighted : null;
             const gEl = document.getElementById('global-average');
             gEl.textContent = globalAvg !== null ? globalAvg.toFixed(2) : "--";
-            gEl.className = `text-xl font-black ${globalAvg !== null ? (globalAvg < 10 ? 'text-red-500' : 'text-blue-600') : 'text-slate-300'}`;
+            gEl.className = `text-2xl font-black ${globalAvg !== null ? (globalAvg < 10 ? 'text-red-400' : 'text-purple-400') : 'text-gray-600'}`;
 
             const regAverages = {};
             REGROUPEMENTS.forEach(reg => {
@@ -315,7 +321,7 @@
                 const regVal = document.getElementById(`reg-val-${reg.id}`);
                 if (regVal) {
                     regVal.textContent = combined !== null ? combined.toFixed(2) : "--";
-                    regVal.className = `text-xl font-bold ${combined !== null && combined < 10 ? 'text-red-600' : 'text-emerald-600'}`;
+                    regVal.className = `text-xl font-bold ${combined !== null && combined < 10 ? 'text-red-400' : 'text-emerald-400'}`;
                 }
             });
 
@@ -344,12 +350,12 @@
             const container = document.getElementById('ue-summary');
             container.innerHTML = CONFIG[currentSemester].ues.map(ue => {
                 const avg = avgs[ue];
-                const color = avg === null ? 'slate-300' : (avg < 10 ? 'red-600' : 'blue-600');
+                const color = avg === null ? 'text-gray-600' : (avg < 10 ? 'text-red-400' : 'text-purple-400');
                 return `
-                    <div class="glass-card p-4 rounded-xl border shadow-sm transition-all hover:border-blue-300">
-                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">${ue}</div>
-                        <div class="text-[11px] text-slate-500 mb-2 truncate font-medium">${CONFIG[currentSemester].labels[ue]}</div>
-                        <div class="text-2xl font-black text-${color} leading-none">${avg !== null ? avg.toFixed(2) : '--'}</div>
+                    <div class="glass-card p-4 rounded-2xl border shadow-2xl transition-all hover:border-purple-500/30">
+                        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-tight">${ue}</div>
+                        <div class="text-[11px] text-gray-500 mb-2 truncate font-medium">${CONFIG[currentSemester].labels[ue]}</div>
+                        <div class="text-2xl font-black ${color} leading-none">${avg !== null ? avg.toFixed(2) : '--'}</div>
                     </div>
                 `;
             }).join('');
@@ -366,19 +372,19 @@
 
             if (anyRegBelow10) {
                 statusText.textContent = "Validation IMPOSSIBLE : Un regroupement est inférieur à 10.";
-                statusText.className = "text-xl font-bold text-red-600";
-                statusIcon.innerHTML = "✖"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-red-100 text-red-600 font-bold border-2 border-red-200";
-                card.className = "mb-8 p-6 rounded-xl border-2 border-red-200 bg-red-50/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+                statusText.className = "text-xl font-bold text-red-400";
+                statusIcon.innerHTML = "✖"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-red-500/10 text-red-400 font-bold border border-red-500/20";
+                card.className = "mb-8 p-6 rounded-2xl border border-red-500/20 bg-red-950/20 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
             } else if (allRegsFilled) {
                 statusText.textContent = "Validation ADMISE : Tous les regroupements sont validés.";
-                statusText.className = "text-xl font-bold text-emerald-600";
-                statusIcon.innerHTML = "✔"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold border-2 border-emerald-200";
-                card.className = "mb-8 p-6 rounded-xl border-2 border-emerald-200 bg-emerald-50/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+                statusText.className = "text-xl font-bold text-emerald-400";
+                statusIcon.innerHTML = "✔"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20";
+                card.className = "mb-8 p-6 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
             } else {
                 statusText.textContent = "En attente de notes pour calcul final...";
-                statusText.className = "text-xl font-semibold text-slate-400 italic";
-                statusIcon.innerHTML = "?"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-white text-slate-400 border-2 border-slate-200";
-                card.className = "mb-8 p-6 rounded-xl border border-slate-200 glass-card shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
+                statusText.className = "text-xl font-semibold text-gray-400 italic";
+                statusIcon.innerHTML = "?"; statusIcon.className = "h-12 w-12 rounded-full flex items-center justify-center bg-white/5 text-gray-400 border border-white/10";
+                card.className = "mb-8 p-6 rounded-2xl border border-white/5 glass-card shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500";
             }
         }
 
@@ -388,34 +394,34 @@
             
             const regContainer = document.getElementById('regroupements-container');
             regContainer.innerHTML = REGROUPEMENTS.map(reg => `
-                <div class="glass-card p-4 rounded-xl flex items-center justify-between shadow-sm hover:border-blue-300 transition-all">
+                <div class="glass-card p-4 rounded-2xl flex items-center justify-between shadow-2xl hover:border-purple-500/30 transition-all">
                     <div>
-                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">${reg.label}</div>
-                        <div class="text-xs text-slate-500 font-medium">${reg.s3} <span class="text-slate-300 mx-1">/</span> ${reg.s4}</div>
+                        <div class="text-[10px] font-black text-gray-400 uppercase tracking-wider">${reg.label}</div>
+                        <div class="text-xs text-gray-500 font-medium">${reg.s3} <span class="text-gray-700 mx-1">/</span> ${reg.s4}</div>
                     </div>
-                    <div id="reg-val-${reg.id}" class="text-2xl font-black text-slate-300">--</div>
+                    <div id="reg-val-${reg.id}" class="text-2xl font-black text-gray-700">--</div>
                 </div>
             `).join('');
 
             CONFIG[currentSemester].data.forEach(sub => {
                 const card = document.createElement('div');
                 card.id = `card-${sub.id}`;
-                card.className = "glass-card rounded-xl p-6 shadow-sm fade-in hover:shadow-md transition-all";
+                card.className = "glass-card rounded-2xl p-6 shadow-2xl fade-in hover:shadow-purple-500/5 transition-all";
                 
                 const examsHtml = sub.exams.map((ex, i) => `
                     <div class="flex-1 min-w-[100px]">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 truncate tracking-widest">${ex.name} <span class="text-slate-300">x${ex.coeff}</span></label>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 truncate tracking-widest">${ex.name} <span class="text-gray-600">x${ex.coeff}</span></label>
                         <input type="number" step="0.1" value="${(grades[sub.id] && grades[sub.id][i]) || ''}" 
                             oninput="handleInput('${sub.id}', ${i}, this.value)"
                             placeholder="0.0"
-                            class="w-full bg-white/80 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
+                            class="w-full bg-white/5 border border-white/5 rounded-xl px-3 py-2 text-sm font-bold text-white focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all placeholder-gray-700">
                     </div>
                 `).join('');
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="font-black text-slate-800 tracking-tight">${sub.name}</h3>
-                        <div id="avg-${sub.id}" class="text-xl font-black text-slate-300">--</div>
+                        <h3 class="font-black text-white tracking-tight text-md">${sub.name}</h3>
+                        <div id="avg-${sub.id}" class="text-xl font-black text-gray-700">--</div>
                     </div>
                     <div class="flex flex-wrap gap-4">${examsHtml}</div>
                 `;
@@ -428,128 +434,116 @@
         document.addEventListener('DOMContentLoaded', init);
 
         // ==========================================
-        // ARRIÈRE-PLAN CHIC : VAGUE DE FLUIDE SOIE 3D
+        // EFFET GLOW AURORA FLUIDE LIQUIDE 3D
         // ==========================================
-        let scene, camera, renderer, particleSystem;
-        let mouseX = 0, mouseY = 0;
-        const count = 2500; // Nombre de micro-particules pour un effet dense et soyeux
+        let scene, camera, renderer, mesh;
+        let mouse = new THREE.Vector2(0, 0);
 
         function init3D() {
             const container = document.getElementById('canvas-3d-container');
             scene = new THREE.Scene();
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-            camera.position.set(0, 15, 35);
-
+            camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
+            const geometry = new THREE.PlaneGeometry(2, 2);
 
-            const color1 = new THREE.Color('#fef08a'); // Doré très doux
-            const color2 = new THREE.Color('#60a5fa'); // Bleu azur dilué
-            const colorBase = new THREE.Color('#ffffff');
+            const vertexShader = `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = vec4(position, 1.0);
+                }
+            `;
 
-            let k = 0;
-            for (let i = 0; i < count; i++) {
-                // Distribution en nappe large
-                const x = (Math.random() - 0.5) * 70;
-                const z = (Math.random() - 0.5) * 70;
-                const y = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 2;
+            const fragmentShader = `
+                uniform vec2 u_resolution;
+                uniform float u_time;
+                uniform vec2 u_mouse;
+                varying vec2 vUv;
 
-                positions[k] = x;
-                positions[k + 1] = y;
-                positions[k + 2] = z;
-
-                // Dégradé de couleur chic mélangé
-                let mixedColor = colorBase.clone();
-                if (Math.random() > 0.6) {
-                    mixedColor.lerp(color1, Math.random() * 0.4);
-                } else if (Math.random() > 0.6) {
-                    mixedColor.lerp(color2, Math.random() * 0.3);
+                vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+                float noise(vec2 p){
+                    vec2 a = floor(p); vec2 d = p - a;
+                    d = d*d*(3.0-2.0*d);
+                    vec4 b = a.xyxy + vec4(0.0, 0.0, 1.0, 1.0);
+                    vec4 k1 = permute(b.xzxz); vec4 k2 = permute(k1.yyww + b.yyww);
+                    vec4 t = mix(k2.xzxz, k2.yyww, d.x);
+                    return mix(t.xz, t.yw, d.y).x / 289.0;
                 }
 
-                colors[k] = mixedColor.r;
-                colors[k + 1] = mixedColor.g;
-                colors[k + 2] = mixedColor.b;
+                void main() {
+                    vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                    
+                    vec2 center1 = vec2(0.3 + sin(u_time * 0.2) * 0.15, 0.7 + cos(u_time * 0.15) * 0.15);
+                    vec2 center2 = vec2(0.8 + cos(u_time * 0.18) * 0.2, 0.3 + sin(u_time * 0.25) * 0.15);
+                    vec2 center3 = vec2(0.5 + sin(u_time * 0.1) * 0.2, 0.4 + cos(u_time * 0.12) * 0.2);
 
-                k += 3;
-            }
+                    center3 += u_mouse * 0.08;
 
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                    float dist1 = length(st - center1) * 1.5;
+                    float dist2 = length(st - center2) * 1.3;
+                    float dist3 = length(st - center3) * 1.6;
 
-            // Création d'une texture circulaire douce sans bords durs
-            const canvas = document.createElement('canvas');
-            canvas.width = 32; canvas.height = 32;
-            const ctx = canvas.getContext('2d');
-            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.3, 'rgba(240, 244, 255, 0.7)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 32, 32);
-            const texture = new THREE.CanvasTexture(canvas);
+                    float glow1 = smoothstep(0.7, 0.0, dist1);
+                    float glow2 = smoothstep(0.6, 0.0, dist2);
+                    float glow3 = smoothstep(0.8, 0.0, dist3);
 
-            const material = new THREE.PointsMaterial({
-                size: 0.55,
-                map: texture,
-                vertexColors: true,
+                    vec3 colorGreen = vec3(0.05, 0.65, 0.45);
+                    vec3 colorPurple = vec3(0.5, 0.1, 0.65);
+                    vec3 colorBlue = vec3(0.1, 0.25, 0.75);
+
+                    vec3 finalColor = vec3(0.0);
+                    finalColor += colorPurple * glow1;
+                    finalColor += colorGreen * glow2;
+                    finalColor += colorBlue * glow3;
+
+                    gl_FragColor = vec4(finalColor, max(max(glow1, glow2), glow3) * 0.45);
+                }
+            `;
+
+            const uniforms = {
+                u_time: { value: 0 },
+                u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                u_mouse: { value: new THREE.Vector2(0, 0) }
+            };
+
+            const material = new THREE.ShaderMaterial({
+                vertexShader,
+                fragmentShader,
+                uniforms,
                 transparent: true,
-                opacity: 0.6,
-                blending: THREE.NormalBlending,
                 depthWrite: false
             });
 
-            particleSystem = new THREE.Points(geometry, material);
-            scene.add(particleSystem);
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
 
             window.addEventListener('resize', onWindowResize);
             document.addEventListener('mousemove', onMouseMove);
             animate();
         }
 
-        function onMouseMove(event) {
-            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        function onMouseMove(e) {
+            mouse.x = (e.clientX / window.innerWidth) - 0.5;
+            mouse.y = -(e.clientY / window.innerHeight) + 0.5;
         }
 
         function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            mesh.material.uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight);
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            const time = Date.now() * 0.0004;
-
-            if (particleSystem) {
-                const positions = particleSystem.geometry.attributes.position.array;
-                let k = 0;
-                for (let i = 0; i < count; i++) {
-                    const x = positions[k];
-                    const z = positions[k + 2];
-                    
-                    // Équation mathématique créant une ondulation fluide de type tissu satiné ou eau calme
-                    positions[k + 1] = Math.sin(x * 0.08 + time) * Math.cos(z * 0.07 + time) * 3 
-                                      + Math.sin((x + z) * 0.04 + time * 1.5) * 1.2;
-                    k += 3;
-                }
-                particleSystem.geometry.attributes.position.needsUpdate = true;
-                
-                // Rotation très délicate de l'ensemble
-                particleSystem.rotation.y = time * 0.05;
-            }
-
-            // Mouvement de caméra amorti suivant doucement la souris pour donner de la profondeur (effet parallaxe discret)
-            camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouseX * 6, 0.02);
-            camera.position.y = THREE.MathUtils.lerp(camera.position.y, 16 + (mouseY * 4), 0.02);
-            camera.lookAt(0, 0, 0);
-
+            mesh.material.uniforms.u_time.value = Date.now() * 0.005;
+            
+            mesh.material.uniforms.u_mouse.value.x = THREE.MathUtils.lerp(mesh.material.uniforms.u_mouse.value.x, mouse.x, 0.05);
+            mesh.material.uniforms.u_mouse.value.y = THREE.MathUtils.lerp(mesh.material.uniforms.u_mouse.value.y, mouse.y, 0.05);
+            
             renderer.render(scene, camera);
         }
 
