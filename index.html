@@ -5,507 +5,1072 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/PNG" href="Pronote.PNG">
     <link rel="apple-touch-icon" href="Pronote.PNG">
-    <title>Cyber-Simulateur BUT2 GEII • Nice</title>
+    <title>Simulateur BUT3 GEII • Nice</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
-        body { 
-            font-family: 'Space Grotesk', sans-serif;
-            background-color: #0b0f19;
+        :root { --a: 34 211 238; --b: 167 139 250; --good: 52 211 153; --bad: 248 113 113; --warn: 251 191 36; }
+        body[data-parcours="EME"] { --a: 251 191 36; --b: 52 211 153; }
+
+        body {
+            font-family: 'Chakra Petch', sans-serif;
+            background: #070b14;
+            color: #e2e8f0;
         }
-        #canvas-3d-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        #canvas-3d-container { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+        #cursor-glow {
+            position: fixed; top: 0; left: 0; width: 520px; height: 520px; margin: -260px 0 0 -260px;
+            border-radius: 50%; pointer-events: none; z-index: 2;
+            background: radial-gradient(circle, rgb(var(--a) / .10) 0%, transparent 65%);
+            transition: background .8s;
         }
-        .interactive-ui {
-            position: relative;
-            z-index: 10;
+        .ui { position: relative; z-index: 10; }
+
+        .acc { color: rgb(var(--a)); transition: color .6s; }
+        .acc2 { color: rgb(var(--b)); transition: color .6s; }
+
+        .panel {
+            background: rgba(10, 15, 28, .66);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(148, 163, 184, .12);
+            transition: border-color .4s, box-shadow .4s;
         }
-        .neon-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .panel:focus-within { border-color: rgb(var(--a) / .55); box-shadow: 0 0 28px rgb(var(--a) / .12); }
+
+        /* Segmented switches */
+        .seg { position: relative; display: inline-flex; padding: 4px; border-radius: 12px; background: rgba(15, 23, 42, .85); border: 1px solid rgba(148,163,184,.15); }
+        .seg .pill { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 9px; background: rgb(var(--a) / .18); border: 1px solid rgb(var(--a) / .6); box-shadow: 0 0 16px rgb(var(--a) / .25); transition: background .6s, border-color .6s; }
+        .seg button { position: relative; z-index: 1; padding: 6px 14px; font-weight: 600; font-size: 13px; color: #94a3b8; transition: color .3s; border-radius: 9px; }
+        .seg button.on { color: #f8fafc; }
+        .seg button:focus-visible, button:focus-visible, .inp:focus-visible { outline: 2px solid rgb(var(--a)); outline-offset: 2px; }
+
+        .inp {
+            width: 100%; background: rgba(2, 6, 23, .7); border: 1px solid rgba(148,163,184,.16); border-radius: 8px;
+            padding: 7px 10px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; color: #f1f5f9;
+            transition: border-color .25s, box-shadow .25s;
         }
-        .neon-card:hover {
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-            transform: translateY(-2px);
-        }
-        .neon-text-blue { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
-        .neon-text-emerald { text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-        .neon-text-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
-        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .inp:focus { outline: none; border-color: rgb(var(--a)); box-shadow: 0 0 0 3px rgb(var(--a) / .18); }
+        .inp::-webkit-inner-spin-button { opacity: .3; }
+
+        .badge { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; padding: 2px 7px; border-radius: 6px; background: rgb(var(--a) / .12); color: rgb(var(--a)); border: 1px solid rgb(var(--a) / .25); white-space: nowrap; transition: all .6s; }
+        .badge.b2 { background: rgb(var(--b) / .12); color: rgb(var(--b)); border-color: rgb(var(--b) / .25); }
+
+        .v-good { color: rgb(var(--good)); text-shadow: 0 0 12px rgb(var(--good) / .45); }
+        .v-bad { color: rgb(var(--bad)); text-shadow: 0 0 12px rgb(var(--bad) / .45); }
+        .v-empty { color: #475569; }
+
+        .bar { height: 4px; border-radius: 4px; background: rgba(148,163,184,.12); position: relative; overflow: visible; }
+        .bar > i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 4px; background: rgb(var(--a)); box-shadow: 0 0 10px rgb(var(--a) / .6); }
+        .bar > i.bad { background: rgb(var(--bad)); box-shadow: 0 0 10px rgb(var(--bad) / .6); }
+        .bar::after { content: ''; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: rgba(226,232,240,.45); }
+
+        .ring-bg { fill: none; stroke: rgba(148,163,184,.12); stroke-width: 6; }
+        .ring-fg { fill: none; stroke: rgb(var(--a)); stroke-width: 6; stroke-linecap: round; filter: drop-shadow(0 0 4px rgb(var(--a) / .7)); transition: stroke .5s; }
+        .ring-fg.bad { stroke: rgb(var(--bad)); filter: drop-shadow(0 0 4px rgb(var(--bad) / .7)); }
+
+        #jury-card { transition: border-color .6s, box-shadow .6s; }
+        #jury-card.st-good { border-color: rgb(var(--good) / .5); box-shadow: 0 0 40px rgb(var(--good) / .12); }
+        #jury-card.st-warn { border-color: rgb(var(--warn) / .5); box-shadow: 0 0 40px rgb(var(--warn) / .1); }
+        #jury-card.st-bad  { border-color: rgb(var(--bad) / .55); box-shadow: 0 0 40px rgb(var(--bad) / .14); }
+        .st-dot { width: 10px; height: 10px; border-radius: 50%; background: #475569; }
+        .st-good .st-dot { background: rgb(var(--good)); box-shadow: 0 0 10px rgb(var(--good)); }
+        .st-warn .st-dot { background: rgb(var(--warn)); box-shadow: 0 0 10px rgb(var(--warn)); }
+        .st-bad .st-dot  { background: rgb(var(--bad)); box-shadow: 0 0 10px rgb(var(--bad)); }
+
+        .bubble { position: relative; background: rgb(var(--a) / .08); border: 1px solid rgb(var(--a) / .3); transition: all .6s; }
+        .caret::after { content: '▋'; margin-left: 2px; animation: blink 1s steps(1) infinite; color: rgb(var(--a)); }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .scanline { background: repeating-linear-gradient(0deg, transparent 0 3px, rgb(var(--a) / .025) 3px 4px); }
+
         body.modal-active { overflow: hidden; }
-        
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-track { background: #070b14; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        ::-webkit-scrollbar-thumb:hover { background: rgb(var(--a)); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen pb-20">
+<body data-parcours="ESE" class="min-h-screen pb-16">
 
-    <div id="canvas-3d-container"></div>
+<div id="canvas-3d-container"></div>
+<div id="cursor-glow"></div>
 
-    <header class="interactive-ui bg-slate-900/80 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="h-12 w-12 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center font-bold text-xl tracking-tighter text-white shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse">
-                    GEII
-                </div>
-                <div>
-                    <h1 class="text-sm font-black tracking-wider uppercase text-slate-400">Simulateur d'Écurie Automatisé</h1>
-                    <select id="semester-selector" onchange="changeSemester(this.value)" class="mt-0.5 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1 text-xs font-bold text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer hover:bg-slate-700 transition-colors outline-none">
-                        <option value="S3">SEMESTRE 3</option>
-                        <option value="S4">SEMESTRE 4</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="resetData()" class="bg-red-950/40 text-red-400 px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-red-900/60 transition-all uppercase tracking-widest border border-red-900/50 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
-                    Purger les données
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="interactive-ui max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <div id="jury-card" class="mb-8 p-6 rounded-2xl border bg-slate-900/60 border-slate-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500">
-            <div class="text-center md:text-left flex-1">
-                <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Analyseur de Validation Annuelle (BUT2)</h2>
-                <p id="jury-status-text" class="text-xl font-bold text-slate-400 italic mb-4">Initialisation des modules de calcul...</p>
-                
-                <div class="inline-flex flex-col items-start bg-slate-950/60 border border-slate-800 rounded-xl px-5 py-3">
-                    <span class="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-1">Moyenne Globale Estimée</span>
-                    <span id="global-average" class="text-3xl font-black text-slate-400 leading-none">--</span>
-                </div>
-            </div>
-            <div id="jury-icon" onclick="toggleModal('modal-validation-info')" class="h-14 w-14 rounded-xl flex items-center justify-center bg-slate-800 border border-slate-700 text-slate-400 text-lg font-bold cursor-pointer hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all shadow-md">
-                ?
+<!-- ============ HEADER ============ -->
+<header id="top" class="ui sticky top-0 z-50 border-b border-slate-800/80 bg-[#070b14]/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-x-6 gap-y-3 justify-between">
+        <div class="flex items-center gap-3">
+            <div id="logo" class="h-11 w-11 rounded-xl flex items-center justify-center font-bold text-sm text-slate-950" style="background: linear-gradient(135deg, rgb(var(--a)), rgb(var(--b))); box-shadow: 0 0 18px rgb(var(--a) / .45); transition: all .6s;">GEII</div>
+            <div>
+                <h1 class="text-lg font-bold leading-tight">Simulateur BUT3</h1>
+                <p class="text-xs text-slate-400">IUT Nice Côte d'Azur, MCC 2026-27</p>
             </div>
         </div>
 
-        <div id="modal-validation-info" class="hidden fixed inset-0 z-[100] overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4 text-center">
-                <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleModal('modal-validation-info')"></div>
-                <div class="inline-block bg-slate-900 border border-slate-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:max-w-lg sm:w-full p-8 relative z-50">
-                    <h3 class="text-xl font-bold text-white mb-4 tracking-tight">🎓 Compensation des Blocs (MCC)</h3>
-                    <div class="space-y-4 text-slate-400 text-sm leading-relaxed">
-                        <p>Le protocole d'acquisition du BUT2 GEII fonctionne par regroupement inter-semestriel :</p>
-                        <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Calcul des Blocs :</strong> Les moyennes du Bloc X au S3 et du Bloc X au S4 se compensent directement.</li>
-                            <li><strong>Seuil d'admission :</strong> Chaque pôle combiné (S3+S4) doit afficher une valeur $\ge 10.00$.</li>
-                            <li><strong>Note éliminatoire :</strong> Aucune UE ne doit descendre en dessous de la note limite absolue de $8.00$.</li>
-                        </ul>
-                    </div>
-                    <button onclick="toggleModal('modal-validation-info')" class="mt-8 w-full bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-white hover:bg-blue-700 transition-colors">Fermer la console</button>
-                </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="seg" id="seg-parcours" role="tablist" aria-label="Parcours">
+                <span class="pill"></span>
+                <button data-v="EME" role="tab">⚡ EME</button>
+                <button data-v="ESE" role="tab">◈ ESE</button>
             </div>
+            <div class="seg" id="seg-sem" role="tablist" aria-label="Semestre">
+                <span class="pill"></span>
+                <button data-v="S5" role="tab">Semestre 5</button>
+                <button data-v="S6" role="tab">Semestre 6</button>
+            </div>
+            <button onclick="resetData()" class="px-3 py-2 rounded-lg text-xs font-semibold text-red-300 border border-red-900/60 bg-red-950/30 hover:bg-red-900/50 transition-colors">Effacer les notes</button>
+        </div>
+    </div>
+</header>
+
+<main class="ui max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ============ JURY / HERO ============ -->
+    <section id="jury-card" class="panel scanline rounded-2xl p-6 md:p-7 mb-6 grid md:grid-cols-[1.4fr_auto_1fr] gap-6 items-center">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="st-dot"></span>
+                <span class="text-sm text-slate-400">Décision de jury estimée, <span id="parcours-name" class="acc font-semibold"></span></span>
+            </div>
+            <p id="jury-status" class="text-2xl md:text-3xl font-bold leading-tight">Calcul en cours…</p>
+            <p id="jury-detail" class="text-sm text-slate-400 mt-2 max-w-xl"></p>
         </div>
 
-        <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 px-1">Unités d'Enseignement (Semestre Actif)</h2>
-        <div id="ue-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-
-        <div class="mb-4">
-            <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 px-1">Bilan de l'Année : Statut des 4 Blocs Nationaux</h2>
-            <div id="regroupements-container" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+        <div class="md:px-8 md:border-x border-slate-800 text-center">
+            <div id="sem-avg" class="mono text-5xl font-bold v-empty">--</div>
+            <div class="text-xs text-slate-400 mt-2 leading-snug">Moyenne <span id="sem-label">S5</span> pondérée ECTS<br><span class="text-slate-500">indicative, ne compte pas pour l'admission</span></div>
         </div>
 
-        <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 mt-8 px-1">Détail des Coefficients & des Évaluations</h2>
-        <div id="subjects-container" class="space-y-4"></div>
-    </main>
-
-    <footer class="interactive-ui border-t border-slate-900 bg-slate-950/40 pt-10 pb-8 mt-16">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-xs text-slate-600 uppercase tracking-widest font-bold">PROJET DE SIMULATION AUTOMATIQUE • GEII NICE</p>
+        <div class="flex items-start gap-3">
+            <div class="bubble rounded-xl px-4 py-3 text-sm flex-1 min-h-[64px]">
+                <div class="text-[11px] acc mono mb-1">GEII-bot</div>
+                <span id="robot-msg" class="caret"></span>
+            </div>
+            <button onclick="toggleModal(true)" aria-label="Règles de validation" class="h-11 w-11 shrink-0 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 font-bold hover:border-[rgb(var(--a))] hover:text-white transition-colors">?</button>
         </div>
-    </footer>
+    </section>
 
-    <script>
-        const CONFIG = {
-            S3: {
-                ues: ["UE31", "UE32", "UE33", "UE34"],
-                labels: { UE31: "Concevoir la partie GEII", UE32: "Vérifier la partie GEII", UE33: "Assurer le MCO", UE34: "Installer (Parcours EME)" },
-                data: [
-                    { id: "R3_01", name: "R3.01 - Anglais", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS", coeff:18},{name:"Impl.", coeff:10},{name:"CO", coeff:10},{name:"Oral", coeff:10}] },
-                    { id: "R3_02", name: "R3.02 - Culture et Communication", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"Séance", coeff:6},{name:"DS", coeff:21},{name:"Exposé", coeff:21}] },
-                    { id: "R3_03", name: "R3.03 - Vie de l'Entreprise", coeffs: { UE31: 8, UE32: 8 }, exams: [{name:"Évaluation", coeff:16}] },
-                    { id: "R3_04", name: "R3.04 - Outils Mathématiques et Logiciels", coeffs: { UE31: 36, UE32: 36 }, exams: [{name:"DS1", coeff:26},{name:"Séance 1", coeff:10},{name:"DS2", coeff:26},{name:"Séance 2", coeff:10}] },
-                    { id: "R3_05", name: "R3.05 - PPP", coeffs: { UE31: 4, UE32: 4 }, exams: [{name:"Dossier", coeff:8}] },
-                    { id: "R3_10", name: "R3.10 - Physique Appliquée", coeffs: { UE31: 24, UE32: 24 }, exams: [{name:"DS1", coeff:13},{name:"DS2", coeff:13},{name:"Partiel TP", coeff:13},{name:"Séance", coeff:9}] },
-                    
-                    { id: "R3_06", name: "R3.06 - Automatique", coeffs: { UE33: 25, UE34: 25 }, exams: [{name:"DS", coeff:24},{name:"TP", coeff:24}] },
-                    { id: "R3_07", name: "R3.07 - Informatique Industrielle", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS", coeff:36},{name:"Partiel TP", coeff:36}] },
-                    { id: "R3_08", name: "R3.08 - Électronique Applied", coeffs: { UE33: 24, UE34: 24 }, exams: [{name:"DS", coeff:32},{name:"TP", coeff:16}] },
-                    { id: "R3_09", name: "R3.09 - Énergie (EME)", coeffs: { UE33: 36, UE34: 36 }, exams: [{name:"DS1", coeff:18},{name:"DS2", coeff:18},{name:"TP", coeff:18},{name:"Quiz", coeff:18}] },
-                    { id: "R3_11", name: "R3.11 - Maintenance", coeffs: { UE33: 8, UE34: 8 }, exams: [{name:"DS", coeff:16}] },
-                    { id: "R3_12", name: "R3.12 - Réseaux & Cybersécurité", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:12},{name:"Partiel TP", coeff:12},{name:"Séance", coeff:8}] },
-                    { id: "R3_EME_15", name: "R3.EME.15 - Supervision / Télégestion", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:24},{name:"TP", coeff:8}] },
-                    { id: "R3_AL", name: "R3.AL - Électronique Numérique", coeffs: { UE33: 17, UE34: 17 }, exams: [{name:"DS", coeff:12},{name:"Partiel TP", coeff:20}] },
-                    
-                    { id: "SAE3_01", name: "SAE 3.01 - Projet LoRa", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"Séance", coeff:80},{name:"Rapport", coeff:50},{name:"Partiel TP", coeff:70}] },
-                    { id: "SAE3_02", name: "SAE 3.02 - Projet Four", coeffs: { UE31: 40, UE32: 40, UE33: 60, UE34: 60 }, exams: [{name:"Séance", coeff:70},{name:"Éval", coeff:65},{name:"DS", coeff:65}] }
-                ]
-            },
-            S4: {
-                ues: ["UE41", "UE42", "UE43", "UE44"],
-                labels: { UE41: "Concevoir la partie GEII", UE42: "Vérifier la partie GEII", UE43: "Assurer le MCO", UE44: "Installer (Parcours EME)" },
-                data: [
-                    { id: "R4_01", name: "R4.01 - Anglais", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"DS", coeff:18},{name:"Débat", coeff:9},{name:"CO", coeff:9}] },
-                    { id: "R4_02", name: "R4.02 - Culture et Communication", coeffs: { UE41: 18, UE42: 18 }, exams: [{name:"Éval", coeff:18},{name:"Vidéo", coeff:18}] },
-                    { id: "R4_03", name: "R4.03 - Vie de l'Entreprise", coeffs: { UE41: 14, UE42: 14 }, exams: [{name:"DS", coeff:28}] },
-                    { id: "R4_04", name: "R4.04 - Outils Mathématiques & Logiciels", coeffs: { UE41: 24, UE42: 24 }, exams: [{name:"DS1", coeff:24},{name:"Séance 2", coeff:6},{name:"DS2", coeff:18}] },
-                    { id: "R4_05", name: "R4.05 - PPP", coeffs: { UE41: 6, UE42: 6 }, exams: [{name:"Séance", coeff:8},{name:"Contrat", coeff:4}] },
-                    
-                    { id: "R4_IA", name: "R4.IA - Bases de l'IA pour l'IoT", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:48},{name:"Séance", coeff:24}] },
-                    { id: "R4_06", name: "R4.06 - Automatique", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
-                    { id: "R4_AL1", name: "R4.AL1 - Automatisme Spécialisé", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:27},{name:"TP", coeff:27}] },
-                    { id: "R4_AL2", name: "R4.AL2 - Électronique Spécialisée", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"DS", coeff:36},{name:"TP", coeff:18}] },
-                    { id: "R4_AL3", name: "R4.AL3 - Électronique Numérique", coeffs: { UE43: 27, UE44: 27 }, exams: [{name:"Évaluation", coeff:54}] },
-                    
-                    // REINTEGRATION DU DS CORRIGE ICI :
-                    { id: "R4_07", name: "R4.07 - Énergie Spécialisée", coeffs: { UE43: 36, UE44: 36 }, exams: [{name:"DS", coeff:30},{name:"TP", coeff:21},{name:"Quiz/WIMS", coeff:21}] },
-                    
-                    { id: "SAE4_01", name: "SAE 4.01 - Projet Roue", coeffs: { UE41: 50, UE42: 50, UE43: 50, UE44: 50 }, exams: [{name:"DS1", coeff:68},{name:"Séance", coeff:68},{name:"Dossier", coeff:54}] },
-                    { id: "SAE4_PF", name: "SAE 4.PF - Portfolio", coeffs: { UE41: 2, UE42: 2, UE43: 2, UE44: 2 }, exams: [{name:"Séance", coeff:8}] },
-                    { id: "SAE4_STAGE", name: "SAE Stage - Stage Principal", coeffs: { UE41: 68, UE42: 68, UE43: 68, UE44: 68 }, exams: [{name:"Entreprise", coeff:90},{name:"Soutenance", coeff:85},{name:"Rapport Écrit", coeff:85},{name:"Suivi Intermédiaire", coeff:12}] }
-                ]
-            }
-        };
+    <!-- Le savais-tu -->
+    <div class="panel rounded-xl px-5 py-3 mb-10 flex items-center gap-3 overflow-hidden">
+        <span class="text-xs acc2 font-semibold whitespace-nowrap">Le savais-tu ?</span>
+        <span id="tip" class="text-sm text-slate-300 mono truncate"></span>
+    </div>
 
-        const REGROUPEMENTS = [
-            { id: "R1", label: "BLOC 1 : Concevoir", s3: "UE31", s4: "UE41" },
-            { id: "R2", label: "BLOC 2 : Vérifier", s3: "UE32", s4: "UE42" },
-            { id: "R3", label: "BLOC 3 : Assurer MCO", s3: "UE33", s4: "UE43" },
-            { id: "R4", label: "BLOC 4 : Installer", s3: "UE34", s4: "UE44" }
-        ];
+    <div id="dyn">
+        <!-- Bilan annuel -->
+        <div class="flex items-end justify-between mb-3 px-1">
+            <h2 class="text-lg font-semibold">Bilan de l'année : regroupements cohérents</h2>
+            <span class="text-xs text-slate-500 hidden sm:block">UE5x + UE6x, seuil 10</span>
+        </div>
+        <div id="regs" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10"></div>
 
-        let currentSemester = "S3";
-        let grades = JSON.parse(localStorage.getItem('but2_grades_v2') || '{}');
+        <!-- UE du semestre -->
+        <div class="flex items-end justify-between mb-3 px-1">
+            <h2 class="text-lg font-semibold">Unités d'enseignement du <span id="sem-title">S5</span></h2>
+        </div>
+        <div id="ues" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"></div>
 
-        function save() { localStorage.setItem('but2_grades_v2', JSON.stringify(grades)); }
-        function changeSemester(sem) { currentSemester = sem; init(); }
-        function toggleModal(modalId) { 
-            document.getElementById(modalId).classList.toggle('hidden');
-            document.body.classList.toggle('modal-active');
-        }
+        <!-- Matières -->
+        <div id="subjects"></div>
+    </div>
+</main>
 
-        function handleInput(subId, examIdx, val) {
-            if (!grades[subId]) grades[subId] = {};
-            if (val === "" || isNaN(val)) delete grades[subId][examIdx];
-            else grades[subId][examIdx] = Math.min(20, Math.max(0, parseFloat(val)));
-            save(); calculate();
-        }
+<!-- ============ MODAL ============ -->
+<div id="modal" class="hidden fixed inset-0 z-[100]">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleModal(false)"></div>
+    <div class="relative flex items-center justify-center min-h-screen p-4">
+        <div id="modal-box" class="panel rounded-2xl max-w-lg w-full p-7 bg-slate-900/95">
+            <h3 class="text-xl font-bold mb-4">Comment on obtient le BUT3</h3>
+            <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
+                <p>Deux façons d'être admis de droit :</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>avoir au moins 10 dans <b>chacune</b> des 8 UE (S5 et S6) ;</li>
+                    <li>ou avoir au moins 10 dans chaque <b>regroupement cohérent</b> : UE51 avec UE61, UE52 avec UE62, UE53 avec UE63, UE54 avec UE64.</li>
+                </ul>
+                <p class="text-slate-400">La moyenne du semestre ou de l'année ne compte pas. Plus de 10 sur l'année avec un regroupement sous 10, ce n'est pas une admission de droit.</p>
+                <p class="text-slate-400">Les deux UE d'un regroupement ont le même poids en ECTS, donc le regroupement est leur moyenne simple. Une épreuve facultative laissée vide n'est pas comptée.</p>
+                <p class="text-slate-500 text-xs">La nature des épreuves est donnée à titre indicatif et peut évoluer.</p>
+            </div>
+            <button onclick="toggleModal(false)" class="mt-6 w-full py-3 rounded-xl font-semibold text-sm text-slate-950" style="background: rgb(var(--a));">Fermer</button>
+        </div>
+    </div>
+</div>
 
-        function calculate() {
-            const ueAverages = {};
-            const sem = CONFIG[currentSemester];
-            const subjectAvgs = {};
-            
-            sem.data.forEach(sub => {
-                let weighted = 0, weights = 0;
-                const subGrades = grades[sub.id] || {};
-                sub.exams.forEach((ex, i) => {
-                    if (subGrades[i] !== undefined) { weighted += subGrades[i] * ex.coeff; weights += ex.coeff; }
-                });
-                const avg = weights > 0 ? weighted / weights : null;
-                subjectAvgs[sub.id] = avg;
-                
-                const el = document.getElementById(`avg-${sub.id}`);
-                const card = document.getElementById(`card-${sub.id}`);
-                if (el) {
-                    el.textContent = avg !== null ? avg.toFixed(2) : "--";
-                    el.className = `text-lg font-bold ${avg !== null ? (avg < 10 ? 'text-red-400 neon-text-red' : 'text-blue-400 neon-text-blue') : 'text-slate-600'}`;
-                }
-                if (card) {
-                    if (avg !== null && avg < 8) card.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-                    else card.style.borderColor = '';
-                }
-            });
+<footer class="ui border-t border-slate-900 mt-16 pt-8 text-center text-xs text-slate-600">
+    Simulateur de notes BUT3 GEII Nice. Les notes restent dans ton navigateur.
+</footer>
 
-            sem.ues.forEach(ue => {
-                let weighted = 0, weights = 0;
-                sem.data.forEach(sub => {
-                    if (sub.coeffs[ue] && subjectAvgs[sub.id] !== null) {
-                        weighted += subjectAvgs[sub.id] * sub.coeffs[ue];
-                        weights += sub.coeffs[ue];
-                    }
-                });
-                ueAverages[ue] = weights > 0 ? weighted / weights : null;
-            });
+<script>
+/* =====================================================================
+   DONNÉES MCC 2026-27
+   c: [coef dans UEx1 et UEx2, coef dans UEx3 et UEx4]
+   ex: [nom, coef, facultatif?]
+   ===================================================================== */
+const MCC = {
+  EME: {
+    S5: [
+      { title: "Ressources tronc commun", ues: "UEx1 · UEx2", items: [
+        { id: "TBIAR501", name: "Anglais", c: [26, 0], ex: [["Quizz", 11], ["DS", 19], ["Oral", 11], ["Implication", 11]] },
+        { id: "TBIAR502", name: "Culture et Communication", c: [26, 0], ex: [["Dossier", 17], ["Tournage", 17], ["Projet", 18]] },
+        { id: "TBIAR503", name: "Vie de l'Entreprise : entrepreneuriat social, RSE, intelligence économique", c: [40, 0], ex: [["Soutenance", 80]] },
+        { id: "TBIAR504", name: "Outils Mathématiques et Logiciels", c: [36, 0], ex: [["DS1", 30], ["DS2", 30], ["Séance", 12, true]] },
+        { id: "TBIAR505", name: "Projet Personnel et Professionnel", c: [6, 0], ex: [["Évaluation", 12]] },
+        { id: "TBIAR507", name: "Base de données", c: [20, 0], ex: [["TP partiel", 40]] },
+        { id: "TBIAR508", name: "Physique Appliquée : CEM", c: [12, 0], ex: [["Évaluation", 24]] },
+      ]},
+      { title: "Ressources métier EME", ues: "UEx3 · UEx4", items: [
+        { id: "TBIAM509", name: "Énergie spécialisée EME", c: [0, 92], ex: [["SLT/Alim DS", 30], ["SLT/Alim TP", 13], ["SLT/Alim DM/Quiz", 13], ["DS Foudre", 32], ["DS Éclairagisme", 16], ["DS Harmoniques", 32], ["DS DimBT", 32], ["Réseaux électriques", 16]] },
+        { id: "TBIAM510", name: "Énergies renouvelables", c: [0, 36], ex: [["DS", 44], ["DM/Quiz", 28]] },
+        { id: "TBIAM511", name: "Automatisme spécialisé", c: [0, 20], ex: [["TP", 40]] },
+        { id: "TBIAM512", name: "Électrotechnique et énergies renouvelables", c: [0, 40], ex: [["TP", 80]] },
+      ]},
+      { title: "Pôle SAÉ", ues: "UEx1 → UEx4", items: [
+        { id: "TBIAM501", name: "SAÉ Projet énergie et automatisme", c: [9, 31], ex: [["Revue de conception", 26], ["Dossier technique", 27], ["Réalisation et essais", 27]] },
+        { id: "TBIAM502", name: "SAÉ Logiciels professionnels", c: [15, 47], ex: [["AutoCAD", 66], ["Caneco", 58]] },
+        { id: "TBIAM503", name: "SAÉ Certification QualiPV", c: [6, 18], ex: [["Évaluation", 48]] },
+        { id: "TBIAM5ET", name: "Note entreprise", c: [4, 16], ex: [["Note entreprise", 40]] },
+      ]},
+    ],
+    S6: [
+      { title: "Ressource tronc commun", ues: "UEx1 · UEx2", items: [
+        { id: "TBIAR601", name: "Projet Personnel et Professionnel", c: [8, 0], ex: [["Évaluation", 16]] },
+      ]},
+      { title: "Ressources métier EME", ues: "UEx3 · UEx4", items: [
+        { id: "TBIAM602", name: "Énergie spécialisée EME", c: [0, 56], ex: [["DS PFC", 37], ["DS Transfo tri", 38], ["TP", 37]] },
+        { id: "TBIAM6A1", name: "Habilitation électrique et schémas", c: [0, 24], ex: [["Habilitation électrique", 24], ["DS habilitation et schéma", 24]] },
+      ]},
+      { title: "Pôle SAÉ", ues: "UEx1 → UEx4", items: [
+        { id: "TBIAM601", name: "SAÉ Domotique KNX", c: [11, 25], ex: [["Évaluation", 72]] },
+        { id: "TBIAM60A", name: "SAÉ Modbus", c: [3, 8], ex: [["Évaluation", 22]] },
+        { id: "TBIAM60B", name: "SAÉ Logiciels professionnels", c: [20, 45], ex: [["PVsyst", 40], ["Revit", 50], ["Dialux", 40]] },
+        { id: "TBIAM6ST", name: "Stage", c: [84, 204], ex: [["Entreprise", 198], ["Rapport", 189], ["Soutenance", 189]] },
+        { id: "TBIAE6PF", name: "Portfolio", c: [4, 8], ex: [["Évaluation", 24]] },
+      ]},
+    ],
+  },
+  ESE: {
+    S5: [
+      { title: "Ressources tronc commun", ues: "UEx1 · UEx2", items: [
+        { id: "TBIAR501", name: "Anglais", c: [26, 0], ex: [["Quizz", 11], ["DS", 19], ["Oral", 11], ["Implication", 11]] },
+        { id: "TBIAR502", name: "Culture et Communication", c: [26, 0], ex: [["Oral", 26], ["Écrit", 26]] },
+        { id: "TBIAR503", name: "Vie de l'Entreprise : entrepreneuriat", c: [40, 0], ex: [["Soutenance", 80]] },
+        { id: "TBIAR504", name: "Outils Mathématiques et Logiciels", c: [36, 0], ex: [["DS1", 30], ["DS2", 30], ["Séance", 12, true]] },
+        { id: "TBIAR505", name: "Projet Personnel et Professionnel", c: [6, 0], ex: [["Évaluation", 12]] },
+        { id: "TBIAR507", name: "Base de données", c: [20, 0], ex: [["TP partiel", 40]] },
+        { id: "TBIAR508", name: "Physique Appliquée : CEM", c: [12, 0], ex: [["Évaluation", 24]] },
+      ]},
+      { title: "Ressources métier ESE", ues: "UEx3 · UEx4", items: [
+        { id: "TBIAS506", name: "Maintenance parcours ESE", c: [0, 10], ex: [["Rapport", 20]] },
+        { id: "TBIAS509", name: "Elec spé : électronique analogique, microélec", c: [0, 28], ex: [["Elec Analog TD", 19], ["Elec Analog TP", 19], ["MicroÉlec TP", 18]] },
+        { id: "TBIAS507", name: "Elec spé : hyperfréquences", c: [0, 32], ex: [["TD", 30], ["TP", 12], ["CAO", 22]] },
+        { id: "TBIAS508", name: "Elec spé : énergie", c: [0, 18], ex: [["DS", 18], ["TP", 9], ["DM/Quiz", 9]] },
+        { id: "TBIAS510", name: "Systèmes embarqués ESE", c: [0, 82], ex: [["Info SE : QCM séance", 57], ["Info SE : note de TPs", 57], ["Linux : DS", 25], ["Linux : partiel TP", 25]] },
+        { id: "TBIAS5A1", name: "Traitement numérique du signal", c: [0, 30], ex: [["DS", 40], ["TP", 20]] },
+      ]},
+      { title: "Pôle SAÉ", ues: "UEx1 → UEx4", items: [
+        { id: "TBIAS501", name: "SAÉ Drône", c: [12, 36], ex: [["DS", 35], ["TP", 35], ["Quiz", 10], ["Vidéo", 16]] },
+        { id: "TBIAS502", name: "SAÉ ROS", c: [8, 22], ex: [["TP", 35], ["Quiz", 10], ["Rapport", 15]] },
+        { id: "TBIAS503", name: "SAÉ IoT", c: [10, 26], ex: [["Présentation orale + démo", 72]] },
+        { id: "TBIAS5ET", name: "Note entreprise", c: [4, 16], ex: [["Note entreprise", 40]] },
+      ]},
+    ],
+    S6: [
+      { title: "Ressource tronc commun", ues: "UEx1 · UEx2", items: [
+        { id: "TBIAR601", name: "Projet Personnel et Professionnel", c: [8, 0], ex: [["Évaluation", 16]] },
+      ]},
+      { title: "Ressources métier ESE", ues: "UEx3 · UEx4", items: [
+        { id: "TBIAS602", name: "Elec spé : FPGA", c: [0, 30], ex: [["Partiel TP", 60]] },
+        { id: "TBIAS603", name: "Elec spé : physique des semi-conducteurs", c: [0, 36], ex: [["Note séance", 16], ["DS", 56]] },
+        { id: "TBIAS604", name: "Elec spé : architecture SE, RTOS", c: [0, 24], ex: [["Partiel TP", 48]] },
+      ]},
+      { title: "Pôle SAÉ", ues: "UEx1 → UEx4", items: [
+        { id: "TBIAS601", name: "SAÉ IA embarquée", c: [17, 34], ex: [["DS", 52], ["Note séance", 50]] },
+        { id: "TBIAS60A", name: "SAÉ Son", c: [17, 34], ex: [["Note séance", 51], ["Partiel TP", 51]] },
+        { id: "TBIAS6ST", name: "Stage", c: [84, 204], ex: [["Entreprise", 198], ["Rapport", 189], ["Soutenance", 189]] },
+        { id: "TBIAE6PF", name: "Portfolio", c: [4, 8], ex: [["Évaluation", 24]] },
+      ]},
+    ],
+  },
+};
 
-            let semTotalWeighted = 0, semTotalWeights = 0;
-            Object.values(ueAverages).forEach(val => { if(val !== null) { semTotalWeighted += val; semTotalWeights++; } });
-            const globalAvg = semTotalWeights > 0 ? semTotalWeighted / semTotalWeights : null;
-            const gEl = document.getElementById('global-average');
-            gEl.textContent = globalAvg !== null ? globalAvg.toFixed(2) : "--";
-            gEl.className = `text-3xl font-black ${globalAvg !== null ? (globalAvg < 10 ? 'text-red-400 neon-text-red' : 'text-blue-400 neon-text-blue') : 'text-slate-600'}`;
+const ECTS = [4, 4, 11, 11];
+const COMPETENCES = p => ["Concevoir", "Vérifier", "Maintenir (MCO)", p === "EME" ? "Installer" : "Implanter"];
+const PARCOURS_NAME = { EME: "parcours EME", ESE: "parcours ESE" };
 
-            REGROUPEMENTS.forEach(reg => {
-                const s3Avg = getUEAverage("S3", reg.s3);
-                const s4Avg = getUEAverage("S4", reg.s4);
-                let combined = null;
-                if (s3Avg !== null && s4Avg !== null) combined = (s3Avg + s4Avg) / 2;
-                else if (s3Avg !== null) combined = s3Avg;
-                else if (s4Avg !== null) combined = s4Avg;
-                
-                const regVal = document.getElementById(`reg-val-${reg.id}`);
-                if (regVal) {
-                    regVal.textContent = combined !== null ? combined.toFixed(2) : "--";
-                    regVal.className = `text-xl font-black ${combined !== null && combined < 10 ? 'text-red-400 neon-text-red' : 'text-emerald-400 neon-text-emerald'}`;
-                }
-            });
+const TIPS = {
+  EME: [
+    "Puissance active en triphasé : P = √3 · U · I · cos φ",
+    "NF C 15-100 : chute de tension max 3 % pour l'éclairage, 5 % pour les autres usages (alimentation réseau public BT).",
+    "Choix d'une protection : Ib ≤ In ≤ Iz.",
+    "Le PFC relève le facteur de puissance et réduit la puissance réactive facturée.",
+    "Les harmoniques de rang 3 s'additionnent dans le neutre : il peut chauffer plus que les phases.",
+    "Une éolienne récupère au mieux 59 % de l'énergie du vent (limite de Betz).",
+    "Habilitation BR : intervention générale en basse tension.",
+    "Éclairement : E = Φ / S, en lux (lm/m²).",
+  ],
+  ESE: [
+    "Coefficient de réflexion : Γ = (ZL − Z0) / (ZL + Z0). Ligne adaptée : Γ = 0.",
+    "Shannon : il faut fe > 2 · fmax pour éviter le repliement de spectre.",
+    "Un RTOS garantit des temps de réponse bornés : c'est le déterminisme.",
+    "PLL = comparateur de phase + filtre de boucle + VCO.",
+    "CAN idéal : SNR ≈ 6,02 · N + 1,76 dB pour N bits.",
+    "Un FPGA, c'est de la logique câblée reconfigurable, décrite en VHDL ou Verilog.",
+    "Gap du silicium : environ 1,12 eV à 300 K.",
+    "Oscillateur LC : f0 = 1 / (2π√(LC)).",
+  ],
+};
 
-            renderUESummary(ueAverages);
-        }
+/* =====================================================================
+   ÉTAT
+   ===================================================================== */
+const STORE_KEY = "but3_grades_v1";
+const PREF_KEY = "but3_prefs_v1";
+let grades = {};
+try { grades = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch (e) { grades = {}; }
+let state = { p: "ESE", s: "S5" };
+try { Object.assign(state, JSON.parse(localStorage.getItem(PREF_KEY) || "{}")); } catch (e) {}
+if (!MCC[state.p]) state.p = "ESE";
+if (!["S5", "S6"].includes(state.s)) state.s = "S5";
 
-        function getUEAverage(semKey, ueKey) {
-            const sem = CONFIG[semKey];
-            let weighted = 0, weights = 0;
-            sem.data.forEach(sub => {
-                if (sub.coeffs[ueKey]) {
-                    let subW = 0, subWeights = 0;
-                    const sg = grades[sub.id] || {};
-                    sub.exams.forEach((ex, i) => { if(sg[i] !== undefined) { subW += sg[i] * ex.coeff; subWeights += ex.coeff; } });
-                    if (subWeights > 0) {
-                        weighted += (subW / subWeights) * sub.coeffs[ueKey];
-                        weights += sub.coeffs[ueKey];
-                    }
-                }
-            });
-            return weights > 0 ? weighted / weights : null;
-        }
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(grades)); } catch (e) {} }
+function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(state)); } catch (e) {} }
+function G(p, s) { return (grades[p] && grades[p][s]) || {}; }
+function bucket(p, s, id) {
+  grades[p] ??= {}; grades[p][s] ??= {}; grades[p][s][id] ??= {};
+  return grades[p][s][id];
+}
 
-        function renderUESummary(avgs) {
-            const container = document.getElementById('ue-summary');
-            container.innerHTML = CONFIG[currentSemester].ues.map(ue => {
-                const avg = avgs[ue];
-                const textColor = avg === null ? 'text-slate-600' : (avg < 10 ? 'text-red-400 neon-text-red' : 'text-blue-400 neon-text-blue');
-                return `
-                    <div class="neon-card p-4 rounded-xl border border-slate-800">
-                        <div class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">${ue}</div>
-                        <div class="text-xs text-slate-400 mb-2 truncate font-medium">${CONFIG[currentSemester].labels[ue]}</div>
-                        <div class="text-2xl font-black ${textColor}">${avg !== null ? avg.toFixed(2) : '--'}</div>
-                    </div>
-                `;
-            }).join('');
-        }
+/* =====================================================================
+   CALCULS
+   Projection : les épreuves vides valent x. Toutes les moyennes sont
+   linéaires en x : moyenne = a + b·x. La note requise vaut (10 − a) / b.
+   ===================================================================== */
+function subjStats(it, g) {
+  g = g || {};
+  let ks = 0, kw = 0, mw = 0;
+  it.ex.forEach(([, w, opt], i) => {
+    const v = g[i];
+    if (typeof v === "number") { ks += v * w; kw += w; }
+    else if (!opt) mw += w;
+  });
+  const tw = kw + mw;
+  return { avg: kw > 0 ? ks / kw : null, a: tw ? ks / tw : 0, b: tw ? mw / tw : 0 };
+}
 
-        function init() {
-            const container = document.getElementById('subjects-container');
-            container.innerHTML = "";
-            
-            const regContainer = document.getElementById('regroupements-container');
-            regContainer.innerHTML = REGROUPEMENTS.map(reg => `
-                <div class="neon-card border p-4 rounded-xl flex items-center justify-between border-slate-800">
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">${reg.label}</div>
-                        <div class="text-[10px] text-blue-500 font-mono">${reg.s3} + ${reg.s4}</div>
-                    </div>
-                    <div id="reg-val-${reg.id}" class="text-xl font-black text-slate-700">--</div>
-                </div>
-            `).join('');
+function ueStats(p, s, i) {
+  const k = i < 2 ? 0 : 1;
+  const g = G(p, s);
+  let w = 0, ws = 0, pw = 0, pa = 0, pb = 0;
+  MCC[p][s].forEach(grp => grp.items.forEach(it => {
+    const c = it.c[k]; if (!c) return;
+    const st = subjStats(it, g[it.id]);
+    pw += c; pa += c * st.a; pb += c * st.b;
+    if (st.avg !== null) { w += c; ws += c * st.avg; }
+  }));
+  return { avg: w ? ws / w : null, a: pw ? pa / pw : 0, b: pw ? pb / pw : 1 };
+}
 
-            CONFIG[currentSemester].data.forEach(sub => {
-                const card = document.createElement('div');
-                card.id = `card-${sub.id}`;
-                card.className = "neon-card rounded-xl p-5 border border-slate-800/80 fade-in";
-                
-                const examsHtml = sub.exams.map((ex, i) => `
-                    <div class="flex-1 min-w-[120px]">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider truncate">${ex.name} <span class="text-blue-500 font-mono text-[9px]">x${ex.coeff}</span></label>
-                        <input type="number" step="0.01" value="${(grades[sub.id] && grades[sub.id][i]) || ''}" 
-                            oninput="handleInput('${sub.id}', ${i}, this.value)"
-                            placeholder="0.00"
-                            class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-mono">
-                    </div>
-                `).join('');
+function yearStats(p) {
+  const ue = { S5: [0, 1, 2, 3].map(i => ueStats(p, "S5", i)), S6: [0, 1, 2, 3].map(i => ueStats(p, "S6", i)) };
+  const regs = [0, 1, 2, 3].map(i => {
+    const x = ue.S5[i], y = ue.S6[i];
+    let avg = null;
+    if (x.avg !== null && y.avg !== null) avg = (x.avg + y.avg) / 2;
+    else avg = x.avg ?? y.avg;
+    const pa = (x.a + y.a) / 2, pb = (x.b + y.b) / 2;
+    const complete = pb < 1e-9;
+    return { avg, s5: x.avg, s6: y.avg, complete, final: pa, need: complete ? null : (10 - pa) / pb };
+  });
+  return { ue, regs };
+}
 
-                card.innerHTML = `
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-sm text-slate-200 tracking-wide">${sub.name}</h3>
-                        <div id="avg-${sub.id}" class="text-md font-black text-slate-700">--</div>
-                    </div>
-                    <div class="flex flex-wrap gap-4">${examsHtml}</div>
-                `;
-                container.appendChild(card);
-            });
-            calculate();
-        }
+/* =====================================================================
+   RENDU
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const fmt = v => v.toFixed(2);
 
-        function resetData() { if(confirm("Réinitialiser toutes les notes ?")) { grades = {}; save(); init(); } }
-        document.addEventListener('DOMContentLoaded', init);
+function setNum(el, val, dec = 2) {
+  if (!el) return;
+  if (el._tw) el._tw.kill();
+  el.classList.remove("v-good", "v-bad", "v-empty");
+  if (val === null || val === undefined) { el.textContent = "--"; el.dataset.v = ""; el.classList.add("v-empty"); return; }
+  el.classList.add(val >= 10 ? "v-good" : "v-bad");
+  const from = parseFloat(el.dataset.v);
+  const o = { v: isNaN(from) ? 0 : from };
+  el.dataset.v = val;
+  el._tw = gsap.to(o, { v: val, duration: .7, ease: "power2.out", onUpdate: () => el.textContent = o.v.toFixed(dec) });
+}
+function setBar(el, val) {
+  if (!el) return;
+  el.classList.toggle("bad", val !== null && val < 10);
+  gsap.to(el, { width: val === null ? "0%" : (Math.max(0, Math.min(20, val)) / 20 * 100) + "%", duration: .7, ease: "power2.out" });
+}
 
-        // ==========================================
-        // CONFIGURATION DU MOTEUR 3D : LE BIG ROBOT ANIMÉ & AURORE LIQUIDE
-        // ==========================================
-        let scene, camera, renderer, grid;
-        let robotBuste, armLeft, forearmLeft, handLeft, armRight, forearmRight, handRight, robotHead;
-        let mouseX = 0, mouseY = 0;
+const RING = 2 * Math.PI * 26;
 
-        function init3D() {
-            const container = document.getElementById('canvas-3d-container');
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x0b0f19, 0.02);
+function renderAll() {
+  const { p, s } = state;
+  const n = s[1];
+  const comp = COMPETENCES(p);
+  $("sem-title").textContent = s;
+  $("sem-label").textContent = s;
+  $("parcours-name").textContent = PARCOURS_NAME[p];
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 4, 14);
+  $("regs").innerHTML = comp.map((c, i) => `
+    <div class="panel rounded-xl p-4 flex items-center gap-4">
+      <div class="relative w-16 h-16 shrink-0">
+        <svg viewBox="0 0 64 64" class="w-16 h-16 -rotate-90"><circle cx="32" cy="32" r="26" class="ring-bg"/><circle id="ring-${i}" cx="32" cy="32" r="26" class="ring-fg" stroke-dasharray="${RING}" stroke-dashoffset="${RING}"/></svg>
+        <div class="absolute inset-0 flex items-center justify-center text-[10px] text-slate-500 mono">/20</div>
+      </div>
+      <div class="min-w-0">
+        <div class="text-sm font-semibold">Bloc ${i + 1} : ${c}</div>
+        <div class="text-[11px] text-slate-500 mono">UE5${i + 1} + UE6${i + 1}</div>
+        <div id="reg-val-${i}" class="mono text-2xl font-bold v-empty">--</div>
+        <div id="reg-sub-${i}" class="text-[11px] text-slate-400 mono"></div>
+        <div id="reg-need-${i}" class="text-xs mt-1 text-slate-300"></div>
+      </div>
+    </div>`).join("");
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
+  $("ues").innerHTML = comp.map((c, i) => `
+    <div class="panel rounded-xl p-4">
+      <div class="flex items-baseline justify-between">
+        <span class="mono text-sm font-bold ${i < 2 ? "acc" : "acc2"}">UE${n}${i + 1}</span>
+        <span class="text-[11px] text-slate-500">${ECTS[i]} ECTS</span>
+      </div>
+      <div class="text-xs text-slate-400 mb-2 truncate">${c}</div>
+      <div id="ue-val-${i}" class="mono text-3xl font-bold v-empty mb-3">--</div>
+      <div class="bar"><i id="ue-bar-${i}"></i></div>
+    </div>`).join("");
 
-            // Lumières Cyber Éclatantes (Glow Aurora)
-            scene.add(new THREE.AmbientLight(0x0a1128, 1.5));
-            
-            const cyanLight = new THREE.PointLight(0x06b6d4, 8, 30);
-            cyanLight.position.set(-6, 5, 4);
-            scene.add(cyanLight);
+  const g = G(p, s);
+  $("subjects").innerHTML = MCC[p][s].map(grp => `
+    <section class="mb-10">
+      <div class="flex items-end justify-between mb-3 px-1">
+        <h2 class="text-lg font-semibold">${grp.title}</h2>
+        <span class="text-xs text-slate-500 mono">${grp.ues.replace(/x/g, n)}</span>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-4">
+        ${grp.items.map(it => cardHTML(it, g[it.id] || {}, n)).join("")}
+      </div>
+    </section>`).join("");
+}
 
-            const magentaLight = new THREE.PointLight(0xd946ef, 8, 30);
-            magentaLight.position.set(6, 8, -2);
-            scene.add(magentaLight);
+function cardHTML(it, g, n) {
+  const badges = [];
+  if (it.c[0]) badges.push(`<span class="badge">UE${n}1 / ${n}2 ×${it.c[0]}</span>`);
+  if (it.c[1]) badges.push(`<span class="badge b2">UE${n}3 / ${n}4 ×${it.c[1]}</span>`);
+  const inputs = it.ex.map(([name, w, opt], i) => `
+    <label class="block">
+      <span class="flex items-baseline gap-1 text-[11px] text-slate-400 mb-1 truncate">${name} <span class="mono acc">×${w}</span>${opt ? '<span class="text-slate-500 italic">facultatif</span>' : ""}</span>
+      <input class="inp" type="number" inputmode="decimal" min="0" max="20" step="0.01" placeholder="—"
+             data-id="${it.id}" data-i="${i}" value="${typeof g[i] === "number" ? g[i] : ""}">
+    </label>`).join("");
+  return `
+    <article id="card-${it.id}" class="panel rounded-xl p-5">
+      <div class="flex items-start justify-between gap-4 mb-1">
+        <div class="min-w-0">
+          <div class="text-[11px] mono text-slate-500">${it.id}</div>
+          <h3 class="font-semibold leading-snug">${it.name}</h3>
+        </div>
+        <div id="avg-${it.id}" class="mono text-2xl font-bold v-empty shrink-0">--</div>
+      </div>
+      <div class="flex flex-wrap gap-1.5 mb-3">${badges.join("")}</div>
+      <div class="bar mb-4"><i id="bar-${it.id}"></i></div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${inputs}</div>
+    </article>`;
+}
 
-            const blueLight = new THREE.DirectionalLight(0x3b82f6, 2);
-            blueLight.position.set(0, 10, 5);
-            scene.add(blueLight);
+function calculate() {
+  const { p, s } = state;
+  const g = G(p, s);
 
-            // Grille technologique infinie
-            grid = new THREE.GridHelper(80, 50, 0x1e293b, 0x0f172a);
-            grid.position.y = -4;
-            scene.add(grid);
+  MCC[p][s].forEach(grp => grp.items.forEach(it => {
+    const st = subjStats(it, g[it.id]);
+    setNum($("avg-" + it.id), st.avg);
+    setBar($("bar-" + it.id), st.avg);
+  }));
 
-            // --- ARCHITECTURE DU BIG ROBOT ---
-            const robotGroup = new THREE.Group();
-            robotGroup.position.set(0, -4, -4); // Centré en arrière-plan
+  const Y = yearStats(p);
+  const ues = Y.ue[s];
+  let sw = 0, sv = 0;
+  ues.forEach((u, i) => {
+    setNum($("ue-val-" + i), u.avg);
+    setBar($("ue-bar-" + i), u.avg);
+    if (u.avg !== null) { sw += ECTS[i]; sv += ECTS[i] * u.avg; }
+  });
+  const semAvg = sw ? sv / sw : null;
+  setNum($("sem-avg"), semAvg);
+  Robot.avg = semAvg;
 
-            const metalMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
-            const glowMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, roughness: 0.1 });
+  Y.regs.forEach((r, i) => {
+    setNum($("reg-val-" + i), r.avg);
+    const ring = $("ring-" + i);
+    if (ring) {
+      ring.classList.toggle("bad", r.avg !== null && r.avg < 10);
+      gsap.to(ring, { attr: { "stroke-dashoffset": RING * (1 - (r.avg ?? 0) / 20) }, duration: .8, ease: "power2.out" });
+    }
+    $("reg-sub-" + i).textContent = `S5 ${r.s5 !== null ? fmt(r.s5) : "--"} · S6 ${r.s6 !== null ? fmt(r.s6) : "--"}`;
+    const needEl = $("reg-need-" + i);
+    if (r.complete) needEl.innerHTML = r.final >= 10 ? `<span class="v-good">Bloc validé</span>` : `<span class="v-bad">Bloc sous 10</span>`;
+    else if (r.need <= 0) needEl.innerHTML = `<span class="v-good">Déjà assuré, même avec 0 au reste</span>`;
+    else if (r.need > 20) needEl.innerHTML = `<span class="v-bad">Hors d'atteinte : il faudrait ${fmt(r.need)}/20</span>`;
+    else needEl.innerHTML = `Il te faut <b class="mono ${r.need >= 10 ? "acc2" : "acc"}">${fmt(r.need)}</b>/20 sur le reste`;
+  });
 
-            // Base/Bassin pivotant
-            const bassinGeo = new THREE.CylinderGeometry(1.8, 2.2, 1, 16);
-            const bassin = new THREE.Mesh(bassinGeo, metalMat);
-            robotGroup.add(bassin);
+  updateStatus(Y);
+}
 
-            // Gros Buste
-            robotBuste = new THREE.Group();
-            robotBuste.position.y = 1.5;
-            const busteMesh = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 2.5), metalMat);
-            const coreGlow = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.4, 16), glowMat);
-            coreGlow.rotation.x = Math.PI / 2;
-            coreGlow.position.set(0, 0.4, 1.2); 
-            robotBuste.add(busteMesh, coreGlow);
-            bassin.add(robotBuste);
+function updateStatus(Y) {
+  const { p } = state;
+  const card = $("jury-card");
+  const comp = COMPETENCES(p);
+  const names = list => list.map(i => `bloc ${i + 1} (${comp[i]})`).join(", ");
+  const regs = Y.regs;
+  let cls = "st-idle", title, detail, msg;
 
-            // Tête massive
-            robotHead = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 1.2), metalMat);
-            robotHead.position.y = 2.2;
-            const visor = new THREE.Mesh(new THREE.BoxGeometry(1, 0.2, 0.2), glowMat);
-            visor.position.set(0, 0.2, 0.6);
-            robotHead.add(visor);
-            robotBuste.add(robotHead);
+  const any = regs.some(r => r.avg !== null);
+  const complete = regs.every(r => r.complete);
 
-            // --- BRAS GAUCHE (Articulé) ---
-            armLeft = new THREE.Group();
-            armLeft.position.set(-2.4, 1, 0);
-            const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), glowMat);
-            const bicepL = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 2.2), metalMat);
-            bicepL.position.y = -1.1;
-            armLeft.add(shoulderL, bicepL);
-            robotBuste.add(armLeft);
+  if (!any) {
+    title = "En attente de tes notes";
+    detail = "Remplis les épreuves du S5 ou du S6. Le calcul de l'année se met à jour tout seul.";
+    msg = "Bip. Donne-moi une note et je te dis ce qu'il te faut pour la suite.";
+  } else if (complete) {
+    const allUE = [...Y.ue.S5, ...Y.ue.S6].every(u => u.avg !== null && u.avg >= 10);
+    const low = regs.map((r, i) => r.final < 10 ? i : -1).filter(i => i >= 0);
+    if (allUE) { cls = "st-good"; title = "Admis : toutes les UE sont à 10 ou plus"; detail = "Les 8 UE du S5 et du S6 sont validées."; msg = "Diplôme en poche. Je lance la fête !"; }
+    else if (!low.length) { cls = "st-good"; title = "Admis par regroupements cohérents"; detail = "Au moins une UE est sous 10, mais les 4 blocs S5 + S6 sont à 10 ou plus."; msg = "Validé grâce à la compensation entre S5 et S6. Bien joué."; }
+    else { cls = "st-bad"; title = "Non admis de droit"; detail = `Sous 10 : ${names(low)}.`; msg = "Le jury aura le dernier mot. Regarde quel bloc coince."; }
+  } else {
+    const below = regs.map((r, i) => r.avg !== null && r.avg < 10 ? i : -1).filter(i => i >= 0);
+    const lost = regs.map((r, i) => r.need !== null && r.need > 20 ? i : -1).filter(i => i >= 0);
+    if (lost.length) { cls = "st-bad"; title = "Un bloc est hors d'atteinte"; detail = `Même avec 20 partout sur le reste : ${names(lost)}.`; msg = "Aïe. Vérifie les notes saisies, puis parle-en à ton responsable d'année."; }
+    else if (below.length) {
+      cls = "st-warn"; title = "Rattrapable, mais à surveiller";
+      const maxNeed = Math.max(...below.map(i => regs[i].need));
+      detail = `Sous 10 pour l'instant : ${names(below)}. Moyenne à viser sur le reste : ${fmt(maxNeed)}/20 au maximum.`;
+      msg = "Pas de panique, il reste des épreuves. Je t'ai calculé la note à viser par bloc.";
+    } else {
+      cls = "st-good"; title = "Sur la bonne voie";
+      detail = "Les blocs déjà notés sont tous à 10 ou plus. La projection se met à jour à chaque note.";
+      msg = "Ça roule. Continue comme ça et les 4 blocs passent.";
+    }
+  }
 
-            forearmLeft = new THREE.Group();
-            forearmLeft.position.y = -2.2;
-            const forearmLMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2, 0.5), metalMat);
-            forearmLMesh.position.y = -1;
-            handLeft = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), glowMat);
-            handLeft.position.y = -2.1;
-            forearmLeft.add(forearmLMesh, handLeft);
-            armLeft.add(forearmLeft);
+  card.classList.remove("st-idle", "st-good", "st-warn", "st-bad");
+  card.classList.add(cls);
+  $("jury-status").textContent = title;
+  $("jury-detail").textContent = detail;
+  say(msg);
+}
 
-            // --- BRAS DROIT (Articulé) ---
-            armRight = new THREE.Group();
-            armRight.position.set(2.4, 1, 0);
-            const shoulderR = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), glowMat);
-            const bicepR = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 2.2), metalMat);
-            bicepR.position.y = -1.1;
-            armRight.add(shoulderR, bicepR);
-            robotBuste.add(armRight);
+/* ---------- Message du robot (machine à écrire) ---------- */
+let lastMsg = "";
+function say(text) {
+  if (text === lastMsg) return;
+  lastMsg = text;
+  const el = $("robot-msg");
+  const o = { n: 0 };
+  gsap.killTweensOf(el._o || {});
+  el._o = o;
+  gsap.to(o, { n: text.length, duration: Math.min(1.6, text.length * .022), ease: "none", onUpdate: () => el.textContent = text.slice(0, Math.round(o.n)) });
+}
 
-            forearmRight = new THREE.Group();
-            forearmRight.position.y = -2.2;
-            const forearmRMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2, 0.5), metalMat);
-            forearmRMesh.position.y = -1;
-            handRight = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), glowMat);
-            handRight.position.y = -2.1;
-            forearmRight.add(forearmRMesh, handRight);
-            armRight.add(forearmRight);
+/* ---------- Astuces ---------- */
+let tipIdx = 0, tipTimer;
+function startTips() {
+  clearInterval(tipTimer);
+  const el = $("tip");
+  const show = () => {
+    const list = TIPS[state.p];
+    const t = list[tipIdx % list.length]; tipIdx++;
+    gsap.timeline()
+      .to(el, { opacity: 0, y: -8, duration: .25 })
+      .add(() => { el.textContent = t; el.title = t; })
+      .fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: .35 });
+  };
+  show();
+  tipTimer = setInterval(show, 7000);
+}
 
-            scene.add(robotGroup);
+/* ---------- Saisie ---------- */
+function onInput(e) {
+  const t = e.target;
+  if (!t.classList.contains("inp")) return;
+  const { p, s } = state;
+  const b = bucket(p, s, t.dataset.id);
+  const i = +t.dataset.i;
+  let v = parseFloat(String(t.value).replace(",", "."));
+  if (t.value === "" || isNaN(v)) delete b[i];
+  else {
+    if (v > 20) { v = 20; t.value = 20; }
+    if (v < 0) { v = 0; t.value = 0; }
+    b[i] = v;
+  }
+  save(); calculate();
+}
+function onChange(e) {
+  const t = e.target;
+  if (!t.classList.contains("inp") || t.value === "") return;
+  const it = MCC[state.p][state.s].flatMap(g => g.items).find(x => x.id === t.dataset.id);
+  const st = subjStats(it, G(state.p, state.s)[it.id]);
+  if (st.avg === null) return;
+  const card = $("card-" + it.id);
+  gsap.fromTo(card, { boxShadow: `0 0 0 1px rgb(var(--${st.avg >= 10 ? "good" : "bad"}) / .8), 0 0 30px rgb(var(--${st.avg >= 10 ? "good" : "bad"}) / .25)` }, { boxShadow: "0 0 0 0 rgba(0,0,0,0)", duration: 1.2, ease: "power2.out" });
+  if (st.avg >= 10) Robot.celebrate(); else Robot.sad();
+}
 
-            window.addEventListener('resize', onWindowResize);
-            document.addEventListener('mousemove', onMouseMove);
-            animate();
-        }
+/* ---------- Switch parcours / semestre ---------- */
+function movePill(segId, val, instant) {
+  const seg = $(segId);
+  seg.querySelectorAll("button").forEach(b => { const on = b.dataset.v === val; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  const btn = seg.querySelector(`[data-v="${val}"]`);
+  gsap.to(seg.querySelector(".pill"), { x: btn.offsetLeft, width: btn.offsetWidth, duration: instant ? 0 : .5, ease: "power3.out" });
+}
 
-        function onMouseMove(event) {
-            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-        }
+function switchTo(p, s) {
+  if (p === state.p && s === state.s) return;
+  const changedP = p !== state.p;
+  state.p = p; state.s = s; savePrefs();
+  document.body.dataset.parcours = p;
+  movePill("seg-parcours", p); movePill("seg-sem", s);
+  gsap.timeline()
+    .to("#dyn", { opacity: 0, y: 14, duration: .22, ease: "power2.in" })
+    .add(() => { renderAll(); calculate(); })
+    .to("#dyn", { opacity: 1, y: 0, duration: .4, ease: "power3.out" })
+    .add(() => gsap.from("#dyn .panel", { opacity: 0, y: 20, duration: .45, stagger: .02, ease: "power3.out", clearProps: "all" }), "<");
+  if (changedP) { tipIdx = 0; startTips(); Scene.setTheme(p); Robot.wave(); }
+}
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+function toggleModal(open) {
+  $("modal").classList.toggle("hidden", !open);
+  document.body.classList.toggle("modal-active", open);
+  if (open) gsap.from("#modal-box", { scale: .92, opacity: 0, duration: .35, ease: "back.out(2)" });
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") toggleModal(false); });
 
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = Date.now() * 0.001;
+function resetData() {
+  if (!confirm(`Effacer toutes les notes du ${PARCOURS_NAME[state.p]} (S5 et S6) ?`)) return;
+  delete grades[state.p]; save(); renderAll(); calculate(); Robot.sad();
+}
 
-            // Défilement de la grille de fond
-            grid.position.z = (time * 1.5) % (80 / 50);
+/* =====================================================================
+   SCÈNE 3D : Three.js + GSAP
+   ===================================================================== */
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const THEMES = {
+  ESE: { a: 0x22d3ee, b: 0xa78bfa, css: ["#22d3ee", "#a78bfa"],
+    formulas: ["Γ = (ZL−Z0)/(ZL+Z0)", "f0 = 1/(2π√LC)", "y[n] = Σ h[k]·x[n−k]", "fe > 2·fmax", "Vgs > Vth", "ID = k(Vgs−Vth)²", "H(z) = Y(z)/X(z)", "λ = c / f", "ROS = (1+|Γ|)/(1−|Γ|)", "0x7F & 0xA5", "SNR = 6,02N + 1,76 dB", "RTOS : tick 1 ms", "always @(posedge clk)", "Eg(Si) ≈ 1,12 eV"] },
+  EME: { a: 0xfbbf24, b: 0x34d399, css: ["#fbbf24", "#34d399"],
+    formulas: ["P = √3·U·I·cos φ", "Q = P·tan φ", "S² = P² + Q²", "ΔU ≤ 3 %", "Ib ≤ In ≤ Iz", "THD = √ΣHn² / H1", "E = Φ / S", "Ppv = G·S·η", "U2/U1 = N2/N1", "Icc = U / Zcc", "tan φ ≤ 0,4", "P = ½ρSv³", "R = ρL / S", "U = R·I"] },
+};
 
-            if (robotBuste) {
-                // Respiration naturelle et mouvements automatiques du robot
-                robotBuste.position.y = 1.5 + Math.sin(time * 1.5) * 0.12;
-                robotBuste.rotation.y = THREE.MathUtils.lerp(robotBuste.rotation.y, mouseX * 0.4, 0.05);
+const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+function setMouse(cx, cy) { mouse.x = (cx / innerWidth) * 2 - 1; mouse.y = -(cy / innerHeight) * 2 + 1; }
+addEventListener("mousemove", e => setMouse(e.clientX, e.clientY));
+addEventListener("touchmove", e => { const t = e.touches[0]; if (t) setMouse(t.clientX, t.clientY); }, { passive: true });
 
-                // Mouvements de tête (regarde la souris)
-                robotHead.rotation.y = THREE.MathUtils.lerp(robotHead.rotation.y, mouseX * 0.5, 0.08);
-                robotHead.rotation.x = THREE.MathUtils.lerp(robotHead.rotation.x, -mouseY * 0.3, 0.08);
+const noop = () => {};
+const Robot = { avg: null, celebrate: noop, sad: noop, wave: noop };
+const Scene = { setTheme: noop };
 
-                // GESTES GAUCHES : Gesticulation robotique calée sur le temps
-                armLeft.rotation.x = -Math.PI / 6 + Math.sin(time * 2) * 0.3;
-                armLeft.rotation.z = -Math.PI / 12 + Math.cos(time * 1.2) * 0.15;
-                forearmLeft.rotation.x = -Math.PI / 4 + Math.sin(time * 2.5) * 0.4;
+function init3D() {
+  if (!window.THREE) return;
+  const container = $("canvas-3d-container");
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x070b14, 0.028);
+  const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 200);
+  camera.position.set(0, 3, 14);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
 
-                // GESTES DROITS : Suit dynamiquement l'axe de la souris pour pointer l'écran
-                armRight.rotation.x = THREE.MathUtils.lerp(armRight.rotation.x, -Math.PI / 4 - (mouseY * 1.2), 0.05);
-                armRight.rotation.z = THREE.MathUtils.lerp(armRight.rotation.z, Math.PI / 6 + (mouseX * 0.5), 0.05);
-                forearmRight.rotation.x = -Math.PI / 3 + Math.cos(time * 3) * 0.2;
-            }
+  let theme = THEMES[state.p];
+  const colA = new THREE.Color(theme.a), colB = new THREE.Color(theme.b);
 
-            // Mouvement de caméra fluide pour effet d'immersion Aurora
-            camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouseX * 2, 0.03);
-            camera.position.y = THREE.MathUtils.lerp(camera.position.y, 4 + (mouseY * 1), 0.03);
-            camera.lookAt(0, 1, -2);
+  /* --- Lumières --- */
+  scene.add(new THREE.AmbientLight(0x1a2440, 1.3));
+  const lightA = new THREE.PointLight(theme.a, 6, 40); lightA.position.set(-7, 6, 3); scene.add(lightA);
+  const lightB = new THREE.PointLight(theme.b, 6, 40); lightB.position.set(7, 7, -2); scene.add(lightB);
+  const key = new THREE.DirectionalLight(0xffffff, .55); key.position.set(0, 10, 8); scene.add(key);
 
-            renderer.render(scene, camera);
-        }
+  /* --- Sol : grille + pistes de circuit avec impulsions --- */
+  const grid = new THREE.GridHelper(90, 60, 0x1e293b, 0x0f172a);
+  grid.position.y = -4.2; scene.add(grid);
 
-        window.onload = init3D;
-    </script>
+  const traceMat = new THREE.LineBasicMaterial({ color: colA.clone(), transparent: true, opacity: .35 });
+  const pulseMat = new THREE.MeshBasicMaterial({ color: colB.clone() });
+  const traces = [];
+  for (let k = 0; k < 14; k++) {
+    const pts = [];
+    let x = Math.round((Math.random() * 36 - 18) / 1.5) * 1.5, z = Math.round((Math.random() * -26 + 4) / 1.5) * 1.5;
+    pts.push(new THREE.Vector3(x, -4.18, z));
+    for (let s = 0; s < 7; s++) {
+      if (Math.random() < .5) x += (Math.random() < .5 ? -1 : 1) * 1.5 * (1 + Math.floor(Math.random() * 3));
+      else z += (Math.random() < .5 ? -1 : 1) * 1.5 * (1 + Math.floor(Math.random() * 3));
+      pts.push(new THREE.Vector3(x, -4.18, z));
+    }
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), traceMat);
+    scene.add(line);
+    const lens = [0]; for (let i = 1; i < pts.length; i++) lens.push(lens[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    const pulse = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 8), pulseMat);
+    scene.add(pulse);
+    traces.push({ pts, lens, total: lens[lens.length - 1], pulse, t: Math.random(), speed: 2 + Math.random() * 3 });
+  }
+
+  /* --- Poussière de données --- */
+  const N = 700, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { pos[i * 3] = Math.random() * 60 - 30; pos[i * 3 + 1] = Math.random() * 20 - 4; pos[i * 3 + 2] = Math.random() * -40 + 6; }
+  const pGeo = new THREE.BufferGeometry(); pGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const pMat = new THREE.PointsMaterial({ color: colA.clone(), size: .06, transparent: true, opacity: .7 });
+  const dust = new THREE.Points(pGeo, pMat); scene.add(dust);
+
+  /* --- Formules flottantes --- */
+  function textTex(txt, color) {
+    const c = document.createElement("canvas"); c.width = 640; c.height = 128;
+    const ctx = c.getContext("2d");
+    let size = 58;
+    ctx.font = `600 ${size}px "JetBrains Mono", monospace`;
+    while (ctx.measureText(txt).width > 600 && size > 20) { size -= 2; ctx.font = `600 ${size}px "JetBrains Mono", monospace`; }
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.shadowColor = color; ctx.shadowBlur = 22; ctx.fillStyle = color;
+    ctx.fillText(txt, 320, 64);
+    const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter;
+    return tex;
+  }
+  const rand = (a, b) => a + Math.random() * (b - a);
+  function spawnX() { let x = rand(-17, 17); if (Math.abs(x) < 5) x += Math.sign(x || 1) * 5; return x; }
+  const sprites = theme.formulas.map((f, i) => {
+    const mat = new THREE.SpriteMaterial({ map: textTex(f, theme.css[i % 2]), transparent: true, depthWrite: false, opacity: 0 });
+    const sp = new THREE.Sprite(mat);
+    sp.position.set(spawnX(), rand(-3, 11), rand(-20, -4));
+    sp.scale.set(5, 1, 1);
+    sp.userData = { speed: rand(.15, .4), phase: rand(0, 6.28), vis: 0 };
+    scene.add(sp);
+    return sp;
+  });
+
+  /* --- Atome (électrons en orbite) --- */
+  const atom = new THREE.Group(); atom.position.set(-11, 6, -13); scene.add(atom);
+  const glowB = new THREE.MeshStandardMaterial({ color: colB.clone(), emissive: colB.clone(), emissiveIntensity: 1.1, roughness: .2 });
+  atom.add(new THREE.Mesh(new THREE.SphereGeometry(.5, 24, 24), glowB));
+  const orbitMat = new THREE.MeshBasicMaterial({ color: colA.clone(), transparent: true, opacity: .45 });
+  const electronMat = new THREE.MeshBasicMaterial({ color: colA.clone() });
+  const orbits = [0, 1, 2].map(k => {
+    const og = new THREE.Group();
+    og.rotation.set(k * 1.05, k * .6, k * .4);
+    og.add(new THREE.Mesh(new THREE.TorusGeometry(1.9, .02, 8, 80), orbitMat));
+    const e = new THREE.Mesh(new THREE.SphereGeometry(.13, 12, 12), electronMat);
+    og.add(e); atom.add(og);
+    return { e, speed: 1.4 + k * .5, off: k * 2 };
+  });
+
+  /* --- Objets propres au parcours : éolienne (EME) et puce (ESE) --- */
+  const metal = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: .85, roughness: .28 });
+  const metal2 = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: .7, roughness: .35 });
+  const glowA = new THREE.MeshStandardMaterial({ color: colA.clone(), emissive: colA.clone(), emissiveIntensity: 1.2, roughness: .2 });
+
+  const turbine = new THREE.Group(); turbine.position.set(11, -4.2, -14); scene.add(turbine);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(.14, .3, 8, 16), metal2); mast.position.y = 4; turbine.add(mast);
+  const nacelle = new THREE.Mesh(new THREE.BoxGeometry(.7, .6, 1.6), metal2); nacelle.position.y = 8.1; turbine.add(nacelle);
+  const rotor = new THREE.Group(); rotor.position.set(0, 8.1, .9); turbine.add(rotor);
+  rotor.add(new THREE.Mesh(new THREE.SphereGeometry(.3, 16, 16), glowA));
+  for (let k = 0; k < 3; k++) {
+    const piv = new THREE.Group(); piv.rotation.z = k * 2 * Math.PI / 3;
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(.28, 3.4, .06), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: .2, roughness: .5 }));
+    blade.position.y = 1.8; piv.add(blade); rotor.add(piv);
+  }
+
+  const chip = new THREE.Group(); chip.position.set(11, 1.5, -14); scene.add(chip);
+  chip.add(new THREE.Mesh(new THREE.BoxGeometry(3, .4, 3), new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: .4, roughness: .6 })));
+  const chipTop = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.4), new THREE.MeshBasicMaterial({ map: textTex("MCU · ESE", "#a78bfa"), transparent: true }));
+  chipTop.rotation.x = -Math.PI / 2; chipTop.position.y = .21; chip.add(chipTop);
+  const pinGeo = new THREE.BoxGeometry(.14, .08, .5);
+  for (let side = 0; side < 4; side++) for (let k = 0; k < 8; k++) {
+    const pin = new THREE.Mesh(pinGeo, metal2);
+    const o = -1.22 + k * .35;
+    if (side === 0) pin.position.set(o, -.1, 1.7);
+    if (side === 1) pin.position.set(o, -.1, -1.7);
+    if (side === 2) { pin.position.set(1.7, -.1, o); pin.rotation.y = Math.PI / 2; }
+    if (side === 3) { pin.position.set(-1.7, -.1, o); pin.rotation.y = Math.PI / 2; }
+    chip.add(pin);
+  }
+  turbine.scale.setScalar(state.p === "EME" ? 1 : .001);
+  chip.scale.setScalar(state.p === "ESE" ? 1 : .001);
+
+  /* --- LE ROBOT --- */
+  const robot = new THREE.Group(); robot.position.set(0, -3, -5); scene.add(robot);
+  const eyeMat = new THREE.MeshStandardMaterial({ color: colA.clone(), emissive: colA.clone(), emissiveIntensity: 1.6 });
+
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.7, .7, 32), metal); robot.add(base);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.55, .07, 12, 48), glowA); ring.rotation.x = Math.PI / 2; ring.position.y = -.2; robot.add(ring);
+  const jet = new THREE.Mesh(new THREE.ConeGeometry(.9, 1.4, 24, 1, true), new THREE.MeshBasicMaterial({ color: colA.clone(), transparent: true, opacity: .25, side: THREE.DoubleSide }));
+  jet.rotation.x = Math.PI; jet.position.y = -1.05; robot.add(jet);
+  const hoverLight = new THREE.PointLight(theme.a, 3, 6); hoverLight.position.y = -1.2; robot.add(hoverLight);
+
+  const torso = new THREE.Group(); torso.position.y = 2.1; robot.add(torso);
+  torso.add(new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.8, 2.1), metal));
+  const belt = new THREE.Mesh(new THREE.BoxGeometry(3.5, .25, 2.2), metal2); belt.position.y = -1.2; torso.add(belt);
+
+  // Écran de poitrine : oscilloscope vivant
+  const scr = document.createElement("canvas"); scr.width = 320; scr.height = 200;
+  const sctx = scr.getContext("2d");
+  const scrTex = new THREE.CanvasTexture(scr);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 1.45), new THREE.MeshBasicMaterial({ map: scrTex }));
+  screen.position.set(0, .15, 1.06); torso.add(screen);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.65, .05), metal2); frame.position.set(0, .15, 1.04); torso.add(frame);
+
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(.35, .45, .5, 16), metal2); neck.position.y = 1.65; torso.add(neck);
+  const head = new THREE.Group(); head.position.y = 2.45; torso.add(head);
+  head.add(new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.35, 1.45), metal));
+  const visor = new THREE.Mesh(new THREE.BoxGeometry(1.6, .6, .08), new THREE.MeshStandardMaterial({ color: 0x020617, metalness: .9, roughness: .1 }));
+  visor.position.set(0, .05, .74); head.add(visor);
+  const eyes = [-.38, .38].map(x => { const e = new THREE.Mesh(new THREE.SphereGeometry(.14, 16, 16), eyeMat); e.position.set(x, .05, .8); head.add(e); return e; });
+  [-1, 1].forEach(sd => { const ear = new THREE.Mesh(new THREE.CylinderGeometry(.28, .28, .2, 20), metal2); ear.rotation.z = Math.PI / 2; ear.position.x = sd * 1.03; head.add(ear); });
+  const antenna = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, .7), metal2); antenna.position.y = 1.02; head.add(antenna);
+  const antTip = new THREE.Mesh(new THREE.SphereGeometry(.13, 12, 12), glowB); antTip.position.y = 1.42; head.add(antTip);
+
+  function makeArm(side) {
+    const arm = new THREE.Group(); arm.position.set(side * 2.05, .85, 0); torso.add(arm);
+    arm.add(new THREE.Mesh(new THREE.SphereGeometry(.48, 20, 20), glowA));
+    const upper = new THREE.Mesh(new THREE.CylinderGeometry(.3, .25, 1.6, 16), metal); upper.position.y = -.9; arm.add(upper);
+    const elbow = new THREE.Group(); elbow.position.y = -1.75; arm.add(elbow);
+    elbow.add(new THREE.Mesh(new THREE.SphereGeometry(.27, 16, 16), metal2));
+    const fore = new THREE.Mesh(new THREE.BoxGeometry(.42, 1.5, .42), metal); fore.position.y = -.8; elbow.add(fore);
+    const hand = new THREE.Group(); hand.position.y = -1.7; elbow.add(hand);
+    hand.add(new THREE.Mesh(new THREE.SphereGeometry(.28, 16, 16), glowA));
+    [-1, 1].forEach(f => { const claw = new THREE.Mesh(new THREE.BoxGeometry(.08, .4, .14), metal2); claw.position.set(f * .14, -.3, 0); claw.rotation.z = f * .25; hand.add(claw); });
+    return { arm, elbow };
+  }
+  const L = makeArm(-1), R = makeArm(1);
+
+  /* --- Gestes pilotés par GSAP --- */
+  const P = { blend: 0, lz: 0, rz: 0, lx: 0, rx: 0, el: 0, er: 0, jump: 0, spin: 0, headX: 0, headZ: 0, intro: -12 };
+  let busy = false;
+  function done() { busy = false; }
+  function eyeColor(hex, d = .3) { const c = new THREE.Color(hex); [eyeMat.color, eyeMat.emissive].forEach(m => gsap.to(m, { r: c.r, g: c.g, b: c.b, duration: d })); }
+
+  Robot.celebrate = () => {
+    if (busy || reduceMotion) return; busy = true;
+    eyeColor(0x34d399);
+    gsap.timeline({ onComplete: done })
+      .set(P, { lz: -2.7, rz: 2.7, lx: 0, rx: 0, el: -.3, er: -.3 })
+      .to(P, { blend: 1, duration: .35, ease: "back.out(2)" })
+      .to(P, { jump: 1.1, duration: .28, ease: "power2.out", yoyo: true, repeat: 3 }, "<")
+      .to(P, { spin: "+=" + Math.PI * 2, duration: 1.1, ease: "power2.inOut" }, "<")
+      .to(P, { el: -1.3, er: -1.3, duration: .16, yoyo: true, repeat: 5 }, "<")
+      .add(() => eyeColor(THEMES[state.p].a, .6))
+      .to(P, { blend: 0, duration: .6, ease: "power2.inOut" });
+  };
+  Robot.sad = () => {
+    if (busy || reduceMotion) return; busy = true;
+    eyeColor(0xf87171);
+    gsap.timeline({ onComplete: done })
+      .set(P, { lz: -.05, rz: .05, lx: .25, rx: .25, el: 0, er: 0 })
+      .to(P, { blend: 1, headX: .45, duration: .6, ease: "power2.out" })
+      .to(P, { headZ: .12, duration: .4, yoyo: true, repeat: 3, ease: "sine.inOut" })
+      .add(() => eyeColor(THEMES[state.p].a, .8))
+      .to(P, { blend: 0, headX: 0, headZ: 0, duration: .8, ease: "power2.inOut" });
+  };
+  Robot.wave = () => {
+    if (busy || reduceMotion) return; busy = true;
+    gsap.timeline({ onComplete: done })
+      .set(P, { lz: -.12, lx: 0, rz: 2.35, rx: -.25, el: -.4, er: -.9 })
+      .to(P, { blend: 1, headZ: .15, duration: .4, ease: "power2.out" })
+      .to(P, { er: .1, duration: .22, yoyo: true, repeat: 5, ease: "sine.inOut" })
+      .to(P, { blend: 0, headZ: 0, duration: .6, ease: "power2.inOut" });
+  };
+
+  // Clignement des yeux
+  (function blink() {
+    gsap.to(eyes.map(e => e.scale), { y: .1, duration: .07, yoyo: true, repeat: 1, delay: 2 + Math.random() * 3, onComplete: blink });
+  })();
+  // Petit coucou de temps en temps
+  setInterval(() => { if (!document.hidden && Math.random() < .5) Robot.wave(); }, 11000);
+
+  /* --- Thème --- */
+  function tweenColor(target, hex, d = 1) { const c = new THREE.Color(hex); gsap.to(target, { r: c.r, g: c.g, b: c.b, duration: d, ease: "power2.inOut" }); }
+  Scene.setTheme = (p) => {
+    theme = THEMES[p];
+    [lightA.color, hoverLight.color, traceMat.color, pMat.color, orbitMat.color, electronMat.color, jet.material.color, glowA.color, glowA.emissive, eyeMat.color, eyeMat.emissive].forEach(c => tweenColor(c, theme.a));
+    [lightB.color, pulseMat.color, glowB.color, glowB.emissive].forEach(c => tweenColor(c, theme.b));
+    // Échange des formules
+    sprites.forEach((sp, i) => {
+      gsap.timeline({ delay: i * .04 })
+        .to(sp.userData, { vis: 0, duration: .35 })
+        .to(sp.scale, { x: .1, y: .02, duration: .35, ease: "power2.in" }, "<")
+        .add(() => { sp.material.map.dispose(); sp.material.map = textTex(theme.formulas[i % theme.formulas.length], theme.css[i % 2]); sp.material.needsUpdate = true; })
+        .to(sp.userData, { vis: 1, duration: .5 })
+        .to(sp.scale, { x: 5, y: 1, duration: .6, ease: "back.out(2)" }, "<");
+    });
+    gsap.to(turbine.scale, { x: p === "EME" ? 1 : .001, y: p === "EME" ? 1 : .001, z: p === "EME" ? 1 : .001, duration: .9, ease: p === "EME" ? "back.out(1.6)" : "power2.in" });
+    gsap.to(chip.scale, { x: p === "ESE" ? 1 : .001, y: p === "ESE" ? 1 : .001, z: p === "ESE" ? 1 : .001, duration: .9, ease: p === "ESE" ? "back.out(1.6)" : "power2.in" });
+  };
+
+  /* --- Oscilloscope de poitrine --- */
+  function drawScreen(t) {
+    const w = scr.width, h = scr.height, [ca, cb] = theme.css;
+    sctx.fillStyle = "#020617"; sctx.fillRect(0, 0, w, h);
+    sctx.strokeStyle = "rgba(148,163,184,.12)"; sctx.lineWidth = 1;
+    for (let x = 0; x <= w; x += 32) { sctx.beginPath(); sctx.moveTo(x, 0); sctx.lineTo(x, h); sctx.stroke(); }
+    for (let y = 0; y <= h; y += 25) { sctx.beginPath(); sctx.moveTo(0, y); sctx.lineTo(w, y); sctx.stroke(); }
+    const mid = 112, amp = 46;
+    const trace = (fn, color) => {
+      sctx.strokeStyle = color; sctx.lineWidth = 2.5; sctx.shadowColor = color; sctx.shadowBlur = 8;
+      sctx.beginPath();
+      for (let x = 0; x <= w; x += 2) { const y = mid - fn(x / w) * amp; x ? sctx.lineTo(x, y) : sctx.moveTo(x, y); }
+      sctx.stroke(); sctx.shadowBlur = 0;
+    };
+    let label;
+    if (state.p === "EME") {
+      ["#fbbf24", "#34d399", "#e2e8f0"].forEach((c, k) => trace(u => Math.sin(u * 4 * Math.PI - t * 4 + k * 2 * Math.PI / 3), c));
+      label = "TRI 400 V  50 Hz";
+    } else {
+      trace(u => (Math.sin(u * 8 * Math.PI - t * 5) > .2 ? .9 : -.9), cb);
+      trace(u => .75 * Math.sin(u * 8 * Math.PI - t * 5 - .5), ca);
+      label = "PWM → filtre RC";
+    }
+    sctx.font = "600 17px 'JetBrains Mono', monospace"; sctx.fillStyle = ca; sctx.textAlign = "left";
+    sctx.fillText(label, 10, 22);
+    sctx.textAlign = "right";
+    const v = Robot.avg;
+    sctx.fillStyle = v === null ? "#64748b" : v >= 10 ? "#34d399" : "#f87171";
+    sctx.fillText(`MOY ${v === null ? "--.--" : v.toFixed(2)}`, w - 10, 22);
+    scrTex.needsUpdate = true;
+  }
+
+  /* --- Boucle --- */
+  const clock = new THREE.Clock();
+  const lerp = THREE.MathUtils.lerp;
+  let tick = 0, prevSX = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    const dt = Math.min(clock.getDelta(), .05);
+    const t = clock.elapsedTime;
+    mouse.sx = lerp(mouse.sx, mouse.x, .07);
+    mouse.sy = lerp(mouse.sy, mouse.y, .07);
+    const vel = mouse.sx - prevSX; prevSX = mouse.sx;
+
+    grid.position.z = (t * 1.2) % 1.5;
+
+    // Robot : suit la souris de gauche à droite et de haut en bas
+    robot.position.x = lerp(robot.position.x, mouse.sx * 3.4, .05);
+    robot.position.y = -3 + mouse.sy * .7 + Math.sin(t * 1.6) * .15 + P.jump + P.intro;
+    robot.rotation.y = lerp(robot.rotation.y, mouse.sx * .55, .06) ;
+    robot.rotation.z = lerp(robot.rotation.z, -vel * 6, .1);
+    torso.rotation.y = P.spin;
+    torso.rotation.x = lerp(torso.rotation.x, -mouse.sy * .12, .06);
+    head.rotation.y = lerp(head.rotation.y, mouse.sx * .6, .1);
+    head.rotation.x = lerp(head.rotation.x, -mouse.sy * .4 + P.headX, .1);
+    head.rotation.z = P.headZ + Math.sin(t * .9) * .03;
+    eyes.forEach((e, k) => { e.position.x = (k ? .38 : -.38) + mouse.sx * .1; e.position.y = .05 + mouse.sy * .08; });
+    antTip.scale.setScalar(1 + Math.sin(t * 6) * .15);
+    jet.scale.y = 1 + Math.sin(t * 20) * .08;
+    jet.material.opacity = .2 + Math.sin(t * 13) * .05;
+
+    // Bras : le gauche bouge tout seul, le droit pointe vers la souris
+    const b = P.blend;
+    const baseLz = -.12 + Math.sin(t * 1.3) * .08, baseLx = Math.sin(t * 1.8) * .25, baseEl = -.45 + Math.sin(t * 2.2) * .18;
+    const baseRz = .25 + (mouse.sy + 1) * .85 + Math.max(0, mouse.sx) * .4;
+    const baseRx = -.5 - mouse.sy * .35, baseEr = -.35 + Math.cos(t * 3) * .1;
+    L.arm.rotation.z = lerp(baseLz, P.lz, b); L.arm.rotation.x = lerp(baseLx, P.lx, b); L.elbow.rotation.x = lerp(baseEl, P.el, b);
+    R.arm.rotation.z = lerp(lerp(R.arm.rotation.z, baseRz, .08), P.rz, b);
+    R.arm.rotation.x = lerp(lerp(R.arm.rotation.x, baseRx, .08), P.rx, b);
+    R.elbow.rotation.x = lerp(baseEr, P.er, b);
+
+    // Formules
+    sprites.forEach(sp => {
+      const u = sp.userData;
+      sp.position.y += u.speed * dt;
+      sp.position.x += Math.sin(t * .5 + u.phase) * .004;
+      if (sp.position.y > 12) { sp.position.y = -3.5; sp.position.x = spawnX(); }
+      const edge = Math.min(1, (sp.position.y + 3.5) / 2, (12 - sp.position.y) / 2);
+      sp.material.opacity = .55 * u.vis * Math.max(0, edge);
+    });
+
+    // Circuit
+    traces.forEach(tr => {
+      tr.t = (tr.t + dt * tr.speed / tr.total) % 1;
+      const d = tr.t * tr.total;
+      let i = 1; while (i < tr.lens.length - 1 && tr.lens[i] < d) i++;
+      const k = (d - tr.lens[i - 1]) / (tr.lens[i] - tr.lens[i - 1] || 1);
+      tr.pulse.position.lerpVectors(tr.pts[i - 1], tr.pts[i], k);
+    });
+
+    dust.rotation.y += dt * .015;
+    atom.rotation.y += dt * .3;
+    atom.position.y = 6 + Math.sin(t * .8) * .4;
+    orbits.forEach(o => { const a = t * o.speed + o.off; o.e.position.set(Math.cos(a) * 1.9, Math.sin(a) * 1.9, 0); });
+    rotor.rotation.z -= dt * 1.6;
+    chip.rotation.y += dt * .4; chip.rotation.x = .5 + Math.sin(t * .7) * .1; chip.position.y = 1.5 + Math.sin(t) * .3;
+
+    // Caméra en parallaxe
+    camera.position.x = lerp(camera.position.x, mouse.sx * 1.6, .04);
+    camera.position.y = lerp(camera.position.y, 3 + mouse.sy * .9, .04);
+    camera.lookAt(0, 1.2, -4);
+
+    if ((tick++ & 1) === 0) drawScreen(t);
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  addEventListener("resize", () => {
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  /* --- Entrée en scène --- */
+  if (reduceMotion) { P.intro = 0; sprites.forEach(s => s.userData.vis = 1); }
+  else {
+    gsap.to(P, { intro: 0, duration: 1.8, ease: "elastic.out(1, .55)", delay: .2 });
+    gsap.from(head.scale, { x: .01, y: .01, z: .01, duration: .8, delay: .9, ease: "back.out(3)" });
+    gsap.from([L.arm.scale, R.arm.scale], { x: .01, y: .01, z: .01, duration: .7, delay: 1.1, stagger: .12, ease: "back.out(2.5)" });
+    sprites.forEach((s, i) => gsap.to(s.userData, { vis: 1, duration: 1, delay: 1 + i * .08 }));
+    gsap.delayedCall(2.4, () => Robot.wave());
+  }
+}
+
+/* =====================================================================
+   DÉMARRAGE
+   ===================================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.dataset.parcours = state.p;
+  renderAll(); calculate();
+  movePill("seg-parcours", state.p, true);
+  movePill("seg-sem", state.s, true);
+  startTips();
+
+  $("seg-parcours").addEventListener("click", e => { const b = e.target.closest("button"); if (b) switchTo(b.dataset.v, state.s); });
+  $("seg-sem").addEventListener("click", e => { const b = e.target.closest("button"); if (b) switchTo(state.p, b.dataset.v); });
+  $("subjects").addEventListener("input", onInput);
+  $("subjects").addEventListener("change", onChange);
+
+  // Halo qui suit le curseur
+  const gx = gsap.quickTo("#cursor-glow", "x", { duration: .5, ease: "power3" });
+  const gy = gsap.quickTo("#cursor-glow", "y", { duration: .5, ease: "power3" });
+  addEventListener("mousemove", e => { gx(e.clientX); gy(e.clientY); });
+
+  if (!reduceMotion) {
+    gsap.timeline()
+      .from("#top", { y: -70, opacity: 0, duration: .7, ease: "power3.out" })
+      .from("#jury-card", { y: 30, opacity: 0, duration: .7, ease: "power3.out" }, "-=.35")
+      .from("#dyn .panel", { y: 24, opacity: 0, duration: .5, stagger: .025, ease: "power3.out", clearProps: "all" }, "-=.4");
+  }
+  addEventListener("resize", () => { movePill("seg-parcours", state.p, true); movePill("seg-sem", state.s, true); });
+
+  // Les polices doivent être chargées avant de dessiner les formules
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(init3D);
+});
+</script>
 </body>
 </html>
